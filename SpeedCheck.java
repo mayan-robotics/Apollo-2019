@@ -4,15 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@Autonomous(name="SpeedCheck", group="Pushbot")
+@Autonomous(name="SpeedCheck", group="Apollo")
 public class SpeedCheck extends LinearOpMode {
-
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
-
 
     @Override
     public void runOpMode() {
-
         robot.init(hardwareMap);
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");

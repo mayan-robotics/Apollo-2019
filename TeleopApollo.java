@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name="Apollo Teleop", group="Apollo")
 public class TeleopApollo extends OpMode {
-
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     static final double speedFactor = 0.5; // Decrease the speed
 
@@ -29,9 +28,6 @@ public class TeleopApollo extends OpMode {
 
         robot.setDriveMotorsPower((leftspeed * speedFactor), HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
         robot.setDriveMotorsPower((rightspeed * speedFactor), HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-
-
-
 
     }
 

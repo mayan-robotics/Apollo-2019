@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 /**
  * Apollo Autonomus.
  */
-
+@Autonomous(name="Autonomous", group="Apollo")
 public class AutoMain extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
 
