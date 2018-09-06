@@ -24,6 +24,8 @@ public class HardwareApollo {
         public enum DRIVE_MOTOR_TYPES {
             LEFT,
             RIGHT,
+            SIDE_WAY_LEFT,
+            SIDE_WAY_RIGHT,
             ALL
         }
 
@@ -77,22 +79,35 @@ public class HardwareApollo {
 
 
         //Function to set the power to all the motors.
-        public void setDriveMotorsPower(double speed, DRIVE_MOTOR_TYPES driverMotorType){
+        public void setDriveMotorsPower(double Speed, DRIVE_MOTOR_TYPES driverMotorType){
             switch (driverMotorType){
                 case LEFT:
-                    driveLeftFront.setPower(speed);
-                    driveLeftBack.setPower(speed);
+                    driveLeftFront.setPower(Speed);
+                    driveLeftBack.setPower(Speed);
                     break;
                 case RIGHT:
-                    driveRightFront.setPower(speed);
-                    driveRightBack.setPower(speed);
+                    driveRightFront.setPower(Speed);
+                    driveRightBack.setPower(Speed);
                     break;
+                case SIDE_WAY_LEFT:
+                    driveLeftBack.setPower(-Speed);
+                    driveLeftFront.setPower(Speed);
+                    driveRightBack.setPower(Speed);
+                    driveRightFront.setPower(-Speed);
+                    break;
+                case SIDE_WAY_RIGHT:
+                    driveLeftBack.setPower(Speed);
+                    driveLeftFront.setPower(-Speed);
+                    driveRightBack.setPower(-Speed);
+                    driveRightFront.setPower(Speed);
+                    break;
+
                 case ALL:
                     default:
-                    driveLeftFront.setPower(speed);
-                    driveLeftBack.setPower(speed);
-                    driveRightFront.setPower(speed);
-                    driveRightBack.setPower(speed);
+                    driveLeftFront.setPower(Speed);
+                    driveLeftBack.setPower(Speed);
+                    driveRightFront.setPower(Speed);
+                    driveRightBack.setPower(Speed);
                     break;
 
             }
@@ -110,6 +125,18 @@ public class HardwareApollo {
                 case RIGHT:
                     driveRightFront.setTargetPosition(Target);
                     driveRightBack.setTargetPosition(Target);
+                    break;
+                case SIDE_WAY_LEFT:
+                    driveLeftBack.setPower(-Target);
+                    driveLeftFront.setPower(Target);
+                    driveRightBack.setPower(Target);
+                    driveRightFront.setPower(-Target);
+                    break;
+                case SIDE_WAY_RIGHT:
+                    driveLeftBack.setPower(Target);
+                    driveLeftFront.setPower(-Target);
+                    driveRightBack.setPower(-Target);
+                    driveRightFront.setPower(Target);
                     break;
                 case ALL:
                 default:
