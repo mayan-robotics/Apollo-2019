@@ -33,6 +33,9 @@ public class AutoMain extends LinearOpMode {
         telemetry.addData("Apollo", "Ready");
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+        while (opModeIsActive()) {
+
+        }
 
 
     }
