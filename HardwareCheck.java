@@ -17,10 +17,10 @@ public class HardwareCheck extends AutoMain{
         robot.init(hardwareMap);
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
+        telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
     }
-
 }

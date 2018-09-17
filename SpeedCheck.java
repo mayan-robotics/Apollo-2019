@@ -13,6 +13,7 @@ public class SpeedCheck extends LinearOpMode {
         robot.init(hardwareMap);
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
+        telemetry.update();
         waitForStart();
 
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -22,6 +23,5 @@ public class SpeedCheck extends LinearOpMode {
 
         }
     }
-
 
 }
