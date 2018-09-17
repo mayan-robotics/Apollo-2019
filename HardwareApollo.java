@@ -2,7 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -18,16 +20,28 @@ public class HardwareApollo {
         public DcMotor  driveLeftBack = null;
         public DcMotor  driveRightFront = null;
         public DcMotor  driveRightBack = null;
+        public DcMotor  mineralGrab = null;
+        public Servo    mineralsDivider = null;
+        public ColorSensor mineralsColor = null;
+
         BNO055IMU imu;
 
-        //Declartion of the drive motor types.
-        public enum DRIVE_MOTOR_TYPES {
-            LEFT,
-            RIGHT,
-            SIDE_WAY_LEFT_DRIVE,
-            SIDE_WAY_RIGHT_DRIVE,
-            ALL
+            //Declaration of the drive motor types.
+            public enum DRIVE_MOTOR_TYPES {
+                LEFT,
+                RIGHT,
+                SIDE_WAY_LEFT_DRIVE,
+                SIDE_WAY_RIGHT_DRIVE,
+                ALL
         }
+
+        //Declaration of Minerals.
+        public enum TYPE_MINERALS {
+            GOLD,
+            SILVER,
+
+        }
+
 
         /* local OpMode members. */
         HardwareMap hwMap  =  null;
@@ -39,17 +53,32 @@ public class HardwareApollo {
 
         /* Initialize standard Hardware interfaces */
         public void init(HardwareMap ahwMap) {
+            // Servo mineral divider positions
+            double mineralsDividerMiddle = 0.5;
+            double mineralsDividerLeft = 0.3;
+            double mineralsDividerRight = 0.7;
+
+
             // Save reference to Hardware map
             hwMap = ahwMap;
 
-            // Define and Initialize Motors
+            // Define and Initialize ALL Motors
             driveLeftFront  = hwMap.get(DcMotor.class, "");
             driveLeftBack  = hwMap.get(DcMotor.class, "");
             driveRightFront  = hwMap.get(DcMotor.class, "");
             driveRightBack  = hwMap.get(DcMotor.class, "");
+            mineralGrab  = hwMap.get(DcMotor.class, "");
+
+            // Define and initialize ALL servos.
+            mineralsDivider  = hwMap.get(Servo.class, "");
+
+            // Define and initialize ALL sensors
+            mineralsColor  = hwMap.get(ColorSensor.class, "");
 
             // Set all motors to zero power
             setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
+            mineralGrab.setPower(0);
+            mineralsDivider.setPosition(mineralsDividerMiddle);
 
             // Set up the parameters with which we will use our IMU. Note that integration
             // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -70,15 +99,13 @@ public class HardwareApollo {
 
             // Set all motors to run without encoders.
             setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            // May want to use RUN_USING_ENCODERS if encoders are installed.
 
 
-            // Define and initialize ALL installed servos.
 
         }
 
 
-        //Function to set the power to all the motors.
+        //Function to set the power to all the drive motors.
         public void setDriveMotorsPower(double Speed, DRIVE_MOTOR_TYPES driverMotorType){
             switch (driverMotorType){
                 case LEFT:
@@ -115,7 +142,7 @@ public class HardwareApollo {
         }
 
 
-        //Function to set the position to all the motors.
+        //Function to set the position to all the drive motors.
         public void setDriveMotorsPosition(int Target, DRIVE_MOTOR_TYPES driverMotorType){
             switch (driverMotorType){
                 case LEFT:
@@ -150,7 +177,7 @@ public class HardwareApollo {
 
         }
 
-        //Function to set the mode run using encoder for all the motors.
+        //Function to set the run mode for all the drive motors.
         public void setDriveMotorsMode(DcMotor.RunMode runMode) {
             driveLeftFront.setMode(runMode);
             driveLeftBack.setMode(runMode);
@@ -158,6 +185,19 @@ public class HardwareApollo {
             driveRightBack.setMode(runMode);
 
         }
+
+        //Function to set the power to all the minerals motors.
+        public void runAllMineralsMotor(double power) {
+            mineralGrab.setPower(power);
+
+        }
+
+        //Function to set the run mode for all the minerals motors.
+        public void setModeAllMineralsMotor(DcMotor.RunMode runMode) {
+            mineralGrab.setMode(runMode);
+
+        }
+
 
 
 

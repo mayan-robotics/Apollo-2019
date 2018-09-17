@@ -9,13 +9,16 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * Apollo Autonomus.
  */
+
 @Autonomous(name="Autonomous", group="Apollo")
-public class AutoMain extends LinearOpMode {
+public abstract class AutoMain extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+    private ElapsedTime     runtime = new ElapsedTime();
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
@@ -26,19 +29,90 @@ public class AutoMain extends LinearOpMode {
     static final double     P_TURN_COEFF      = 0.1;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_COEFF     = 0.15;     // Larger is more responsive, but also less stable
 
-    @Override
-    public void runOpMode() {
-        robot.init(hardwareMap);
-        // Send telemetry message to signify robot waiting;
-        telemetry.addData("Apollo", "Ready");
-        // Wait for the game to start (driver presses PLAY)
-        waitForStart();
-        while (opModeIsActive()) {
 
-        }
+    public class MineralOnBot{
+        HardwareApollo.TYPE_MINERALS[] mineralsType = new HardwareApollo.TYPE_MINERALS[2];
+        int numberOfMinerals ;
+    }
+
+    //Init function, hardwareMap
+    public void apolloInit() {
+        robot.init(hardwareMap);
 
 
     }
+
+    //The main function of the autonomous
+    void apolloRun(boolean isCrater) {
+
+    }
+
+    //Function to get two minerals.
+    public MineralOnBot getTwoMineral(){
+        //Activate all motors to grab minerals, and make robot slowly move forward to get more monerals
+        robot.setModeAllMineralsMotor(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.runAllMineralsMotor(0.7);
+        robot.setDriveMotorsPower(0.05, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+        // Reset mineral on bot parameters
+        MineralOnBot mineral = null;
+        mineral.numberOfMinerals = 0;
+
+        telemetry.addData("Minerals", mineral.numberOfMinerals);
+        telemetry.update();
+
+        while (mineral.numberOfMinerals<2 && opModeIsActive()) {
+
+            if (mineralTypeDetect() == HardwareApollo.TYPE_MINERALS.GOLD) {
+                mineral.mineralsType[mineral.numberOfMinerals] = HardwareApollo.TYPE_MINERALS.GOLD;
+                mineral.numberOfMinerals++;
+                telemetry.addData("Minerals", mineral.numberOfMinerals);
+                telemetry.addData("Mineral", "number: Type: = %d, GOLD",
+                        mineral.numberOfMinerals);
+                telemetry.update();
+            } else if (mineralTypeDetect() == HardwareApollo.TYPE_MINERALS.SILVER) {
+                mineral.mineralsType[mineral.numberOfMinerals] = HardwareApollo.TYPE_MINERALS.SILVER;
+                mineral.numberOfMinerals++;
+                telemetry.addData("Minerals", mineral.numberOfMinerals);
+                telemetry.addData("Mineral", "number: Type: = %d, SILVER",
+                        mineral.numberOfMinerals);
+                telemetry.update();
+
+            }
+        }
+        //stop motors (stop grabbing minerals)
+        robot.runAllMineralsMotor(0);
+        robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+        //return what minerals the robot got (in order).
+        return (mineral);
+
+    }
+
+    public HardwareApollo.TYPE_MINERALS mineralTypeDetect(){
+        if (robot.mineralsColor.red()>=270 && robot.mineralsColor.blue()>=85 && robot.mineralsColor.green()>=172 &&
+                robot.mineralsColor.red()<=870 && robot.mineralsColor.blue()<=290 && robot.mineralsColor.green()<=550){
+            waitSeconds(1.0);
+            return HardwareApollo.TYPE_MINERALS.GOLD;
+        }
+        else if (robot.mineralsColor.red()>=700 && robot.mineralsColor.blue()>=630 && robot.mineralsColor.green()>=700 &&
+                robot.mineralsColor.red()<=1530 && robot.mineralsColor.blue()<=1330 && robot.mineralsColor.green()<=700){
+            waitSeconds(1.0);
+            return HardwareApollo.TYPE_MINERALS.GOLD;
+        }else{
+            return null;
+        }
+    }
+
+    public void waitSeconds(double seconds){
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < seconds)) {}
+    }
+
+    //TO DO:
+    public void moveToGoldMineralByCamera(){
+
+    }
+
 
     public void gyroDrive ( double speed,
                             double tickDistance,

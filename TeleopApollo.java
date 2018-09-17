@@ -53,8 +53,8 @@ public class TeleopApollo extends OpMode{
     // Side way drive should activate only when both joy sticks are pushed to the same side.
     public ControlParameters ControllerWay() {
         final double speedFactor = 0.5; // Decrease the speed factor
-        final double LeftLimitPoint = -50.0;
-        final double RightLimitPoint = 50.0;
+        final double LeftLimitPoint = -0.5;
+        final double RightLimitPoint = 0.5;
         // The joystick goes negative when pushed forwards, so negate it)
         double LeftX = -gamepad1.left_stick_x;
         double LeftY = -gamepad1.left_stick_y;
