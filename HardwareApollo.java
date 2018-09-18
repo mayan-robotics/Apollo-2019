@@ -26,13 +26,13 @@ public class HardwareApollo {
 
         BNO055IMU imu;
 
-            //Declaration of the drive motor types.
-            public enum DRIVE_MOTOR_TYPES {
-                LEFT,
-                RIGHT,
-                SIDE_WAY_LEFT_DRIVE,
-                SIDE_WAY_RIGHT_DRIVE,
-                ALL
+        //Declaration of the drive motor types.
+        public enum DRIVE_MOTOR_TYPES {
+            LEFT,
+            RIGHT,
+            SIDE_WAY_LEFT_DRIVE,
+            SIDE_WAY_RIGHT_DRIVE,
+            ALL
         }
 
         //Declaration of Minerals.
