@@ -6,16 +6,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.VisionExamples.ExampleBlueVision;
 
 /**
  * Apollo Autonomus.
  */
 
-@Autonomous(name="Autonomous", group="Apollo")
 public abstract class AutoMain extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime     runtime = new ElapsedTime();
@@ -42,6 +43,11 @@ public abstract class AutoMain extends LinearOpMode {
     public void apolloInit() {
         robot.init(hardwareMap);
         vision = new MineralVision();
+        // can replace with ActivityViewDisplay.getInstance() for fullscreen
+        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        vision.setShowCountours(false);
+        // start the vision system
+        vision.enable();
     }
 
     //The main function of the autonomous
@@ -92,6 +98,7 @@ public abstract class AutoMain extends LinearOpMode {
 
     //Function returns which mineral the camera detected.
     public HardwareApollo.TYPE_MINERALS mineralTypeDetect(){
+        vision.setShowCountours(true);
         if(vision.goldMineralFound()== true) {
             return HardwareApollo.TYPE_MINERALS.GOLD;
         }

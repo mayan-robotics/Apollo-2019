@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 
-@Autonomous(name="Apollo: Auto Crater", group="Apollo")
+@Autonomous(name="Apollo: Auto Depot", group="Apollo")
 public class AutoDepot extends AutoMain {
 
     @Override

@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.corningrobotics.enderbots.endercv.OpenCVPipeline;
-import org.firstinspires.ftc.teamcode.GripGoldMineral;
-import org.firstinspires.ftc.teamcode.GripSilverMineral;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -129,7 +127,7 @@ public class MineralVision extends OpenCVPipeline {
                 Imgproc.rectangle(
                         rgba, new Point(targetRects[0].x, targetRects[0].y),
                         new Point(targetRects[0].x + targetRects[0].width, targetRects[0].y + targetRects[0].height),
-                        new Scalar(255, 0, 0), 5);
+                        new Scalar(255, 210, 0), 5);
             }
         }
         if (findSilverMineral == true) {
@@ -137,7 +135,7 @@ public class MineralVision extends OpenCVPipeline {
                 Imgproc.rectangle(
                         rgba, new Point(targetRects[1].x, targetRects[1].y),
                         new Point(targetRects[1].x + targetRects[1].width, targetRects[1].y + targetRects[1].height),
-                        new Scalar(0, 255, 0), 5);
+                        new Scalar(0, 230, 255), 5);
             }
         }
         return rgba; // display the image seen by the camera
