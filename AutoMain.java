@@ -27,6 +27,7 @@ public abstract class AutoMain extends LinearOpMode {
     static final double     P_TURN_COEFF      = 0.1;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_COEFF     = 0.15;     // Larger is more responsive, but also less stable
 
+    static final double     mineralGraberPower = 0.7 ;
     private MineralVision vision;
 
 
@@ -56,7 +57,7 @@ public abstract class AutoMain extends LinearOpMode {
     public MineralOnBot getTwoMineral(){
         //Activate all motors to grab minerals, and make robot slowly move forward to get more minerals
         robot.setModeAllMineralsMotor(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.runAllMineralsMotor(0.7);
+        robot.runAllMineralsMotor(mineralGraberPower);
         robot.setDriveMotorsPower(0.05, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
         // Reset mineral on bot parameters

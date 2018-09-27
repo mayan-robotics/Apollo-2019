@@ -13,7 +13,7 @@ public class TeleopApollo extends OpMode{
 
     // Declaration of the drive state.
     private enum DRIVE_CONTROL_STATE {
-        STRAIGHT,
+        NORMAL,
         SIDE_WAY_LEFT,
         SIDE_WAY_RIGHT
     }
@@ -33,7 +33,7 @@ public class TeleopApollo extends OpMode{
 
     @Override
     public void loop() {
-        if(ControllerWay().driveControlState == DRIVE_CONTROL_STATE.STRAIGHT){
+        if(ControllerWay().driveControlState == DRIVE_CONTROL_STATE.NORMAL){
             robot.setDriveMotorsPower(ControllerWay().LeftPower, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
             robot.setDriveMotorsPower(ControllerWay().RightPower, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
         }
@@ -69,7 +69,6 @@ public class TeleopApollo extends OpMode{
             driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.SIDE_WAY_LEFT;
             driveControlParameters.LeftPower = LeftX*speedFactor ;
             driveControlParameters.RightPower = 0.0 ;
-
         }
         else if ((Math.abs(LeftX) > Math.abs(LeftY) && LeftX > RightLimitPoint) &&
                     (Math.abs(RightX) > Math.abs(RightY) && RightX > RightLimitPoint)) {
@@ -78,7 +77,7 @@ public class TeleopApollo extends OpMode{
             driveControlParameters.LeftPower = 0.0 ;
         }
         else{
-            driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.STRAIGHT;
+            driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.NORMAL;
             driveControlParameters.LeftPower =LeftY*speedFactor ;
             driveControlParameters.RightPower =RightY*speedFactor ;
         }

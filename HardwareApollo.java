@@ -39,7 +39,6 @@ public class HardwareApollo {
         public enum TYPE_MINERALS {
             GOLD,
             SILVER,
-
         }
 
 
@@ -78,7 +77,6 @@ public class HardwareApollo {
             // Set all motors to zero power
             setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
             mineralGrab.setPower(0);
-            mineralsDivider.setPosition(mineralsDividerMiddle);
 
             // Set up the parameters with which we will use our IMU. Note that integration
             // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -128,7 +126,6 @@ public class HardwareApollo {
                     driveRightBack.setPower(-Speed);
                     driveRightFront.setPower(Speed);
                     break;
-
                 case ALL:
                     default:
                     driveLeftFront.setPower(Speed);
@@ -197,8 +194,4 @@ public class HardwareApollo {
             mineralGrab.setMode(runMode);
 
         }
-
-
-
-
 }
