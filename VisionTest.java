@@ -68,6 +68,7 @@ public class VisionTest extends OpMode {
     public void loop() {
         vision.setShowCountours(true);
         //blueVision.setShowCountours(true);
+
         if(vision.goldMineralFound()== true){
             telemetry.addData("Apollo","found a gold mineral");
         }else{
@@ -79,6 +80,7 @@ public class VisionTest extends OpMode {
             telemetry.addData("Apollo","did not find a silver mineral");
         }
         telemetry.update();
+
     }
 
     public void stop() {

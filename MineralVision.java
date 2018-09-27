@@ -1,13 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.corningrobotics.enderbots.endercv.OpenCVPipeline;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Rect;
 import org.opencv.core.Point;
+
+
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by guinea on 10/5/17.
@@ -44,10 +53,12 @@ import org.opencv.core.Point;
 
 public class MineralVision extends OpenCVPipeline {
     private boolean showContours = true;
-    GripGoldMineral gripGold   = new GripGoldMineral();
-    GripSilverMineral gripSilver   = new GripSilverMineral();
+    GripGoldMineral     gripGold   = new GripGoldMineral();
+    GripSilverMineral   gripSilver   = new GripSilverMineral();
     // To keep it such that we don't have to instantiate a new Mat every call to processFrame,
     // we declare the Mats up here and reuse them. This is easier on the garbage collector.
+
+    private Mat imageRGB = new Mat();
     private Mat hsv = new Mat();
     private Mat thresholded = new Mat();
     private MatOfKeyPoint detectedTargets;
@@ -55,6 +66,9 @@ public class MineralVision extends OpenCVPipeline {
     private  Rect[] targetRects = new Rect[2];
     private boolean findGoldMineral = false;
     private boolean findSilverMineral = false;
+
+    private List<MatOfPoint> contoursGold = new ArrayList<>();
+    private List<MatOfPoint> contoursSilver = new ArrayList<>();
 
     // this is just here so we can expose it later thru getContours.
     //private List<MatOfPoint> contours = new ArrayList<>();
@@ -77,68 +91,31 @@ public class MineralVision extends OpenCVPipeline {
     @Override
     public Mat processFrame(Mat rgba, Mat gray) {
 
-        gripGold.process(rgba);
-        detectedTargets = gripGold.findBlobsOutput();
-        if ((detectedTargets != null) && (showContours)) {
-            KeyPoint[] targets = detectedTargets.toArray();
+        rgba.copyTo(imageRGB);
 
-            if ((targets.length > 1) && (showContours)) {
-                double radius = targets[0].size / 2;
-                targetRect = new Rect(
-                        (int) (targets[0].pt.x - radius), (int) (targets[0].pt.y - radius),
-                        (int) targets[0].size, (int) targets[0].size);
-                targetRects[0] = targetRect;
-                findGoldMineral = true;
-            } else {
-                findGoldMineral = false;
-            }
-            detectedTargets.release();
+        gripGold.process(imageRGB);
+        contoursGold = new ArrayList<>();
+        contoursGold = gripGold.filterContoursOutput();
+
+        gripSilver.process(imageRGB);
+        contoursSilver = new ArrayList<>();
+        contoursSilver = gripSilver.filterContoursOutput();
+
+        if ((!(contoursGold.isEmpty())) && (showContours)) {
+            Imgproc.drawContours(imageRGB, contoursGold, -1,  new Scalar(255, 210, 0), 4, 8);
+            findGoldMineral = true;
         } else {
             findGoldMineral = false;
         }
 
-        gripSilver.process(rgba);
-        detectedTargets = gripSilver.findBlobsOutput();
-        if ((detectedTargets != null) && (showContours)) {
-            KeyPoint[] targets = detectedTargets.toArray();
-
-            if ((targets.length > 1) && (showContours)) {
-                double radius = targets[0].size / 2;
-                targetRect = new Rect(
-                        (int) (targets[0].pt.x - radius), (int) (targets[0].pt.y - radius),
-                        (int) targets[0].size, (int) targets[0].size);
-                targetRects[1] = targetRect;
-                synchronized (rgba) {
-                    Imgproc.rectangle(
-                            rgba, new Point(targetRect.x, targetRect.y),
-                            new Point(targetRect.x + targetRect.width, targetRect.y + targetRect.height),
-                            new Scalar(0, 255, 0), 5);
-                }
-                findSilverMineral = true;
-            } else {
-                findSilverMineral = false;
-            }
-            detectedTargets.release();
+        if ((!(contoursSilver.isEmpty())) && (showContours)) {
+            Imgproc.drawContours(imageRGB, contoursSilver, -1, new Scalar(0, 230, 255), 4, 8);
+            findSilverMineral = true;
         } else {
-            findGoldMineral = false;
+            findSilverMineral = false;
         }
-        if (findGoldMineral == true) {
-            synchronized (rgba) {
-                Imgproc.rectangle(
-                        rgba, new Point(targetRects[0].x, targetRects[0].y),
-                        new Point(targetRects[0].x + targetRects[0].width, targetRects[0].y + targetRects[0].height),
-                        new Scalar(255, 210, 0), 5);
-            }
-        }
-        if (findSilverMineral == true) {
-            synchronized (rgba) {
-                Imgproc.rectangle(
-                        rgba, new Point(targetRects[1].x, targetRects[1].y),
-                        new Point(targetRects[1].x + targetRects[1].width, targetRects[1].y + targetRects[1].height),
-                        new Scalar(0, 230, 255), 5);
-            }
-        }
-        return rgba; // display the image seen by the camera
+
+        return imageRGB; // display the image seen by the camera
     }
 
     private void drawRectangles(Mat image, Rect[] detectedObjectRects, Scalar color, int thickness)
