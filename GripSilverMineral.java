@@ -32,18 +32,18 @@ public class GripSilverMineral {
      * This is the primary method that runs the entire pipeline and updates the outputs.
      */
     public void process(Mat source0) {
-        // Step Resize_Image0:
-        Mat resizeImageInput = source0;
-        double resizeImageWidth = 320.0;
-        double resizeImageHeight = 240.0;
-        int resizeImageInterpolation = Imgproc.INTER_CUBIC;
-        resizeImage(resizeImageInput, resizeImageWidth, resizeImageHeight, resizeImageInterpolation, resizeImageOutput);
+        //// Step Resize_Image0:
+        //Mat resizeImageInput = source0;
+        //double resizeImageWidth = 320.0;
+        //double resizeImageHeight = 240.0;
+        //int resizeImageInterpolation = Imgproc.INTER_CUBIC;
+        //resizeImage(resizeImageInput, resizeImageWidth, resizeImageHeight, resizeImageInterpolation, resizeImageOutput);
 
         // Step HSV_Threshold0:
-        Mat hsvThresholdInput = resizeImageOutput;
-        double[] hsvThresholdHue = {60.43165493354523, 160.64163822525597};
+        Mat hsvThresholdInput = source0;
+        double[] hsvThresholdHue = {60.43165493354523, 164.64163822525597};
         double[] hsvThresholdSaturation = {0.0, 43.22525873932824};
-        double[] hsvThresholdValue = {136.06114160242697, 245.0};
+        double[] hsvThresholdValue = {136.06114160242697, 252.09897057595106};
         hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
 
         // Step Find_Contours0:
@@ -121,7 +121,7 @@ public class GripSilverMineral {
      * @param hue The min and max hue
      * @param sat The min and max saturation
      * @param val The min and max value
-     * //@param output The image in which to store the output.
+     * /@param output The image in which to store the output.
      */
     private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
                               Mat out) {
@@ -133,9 +133,9 @@ public class GripSilverMineral {
     /**
      * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
      * @param input The image on which to perform the Distance Transform.
-     * //@param type The Transform.
-     * //@param maskSize the size of the mask.
-     * //@param output The image in which to store the output.
+     * /@param type The Transform.
+     * /@param maskSize the size of the mask.
+     * /@param output The image in which to store the output.
      */
     private void findContours(Mat input, boolean externalOnly,
                               List<MatOfPoint> contours) {
@@ -163,7 +163,7 @@ public class GripSilverMineral {
      * @param maxWidth maximum width
      * @param minHeight minimum height
      * @param maxHeight maximimum height
-     * //@param Solidity the minimum and maximum solidity of a contour
+     * /@param Solidity the minimum and maximum solidity of a contour
      * @param minVertexCount minimum vertex Count of the contours
      * @param maxVertexCount maximum vertex Count
      * @param minRatio minimum ratio of width to height
@@ -200,7 +200,5 @@ public class GripSilverMineral {
             output.add(contour);
         }
     }
-
-
 }
 

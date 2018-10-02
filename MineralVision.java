@@ -79,6 +79,12 @@ public class MineralVision extends OpenCVPipeline {
     //public synchronized List<MatOfPoint> getContours() {
     //    return contours;
     //}
+    public synchronized List<MatOfPoint> getGoldContours() {
+        return contoursGold;
+    }
+    public synchronized List<MatOfPoint> getSilverContours() {
+        return contoursSilver;
+    }
 
     public synchronized boolean goldMineralFound () {
         return (findGoldMineral);

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 import org.opencv.core.MatOfPoint;
@@ -9,7 +9,6 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by guinea on 10/5/17.
@@ -50,8 +49,8 @@ import java.util.Locale;
  * Vision Test.
  * This Class was made for checking and testing the vision is working properly.
  */
-@Autonomous(name="Vision Test")
-public class VisionTest extends OpMode {
+@Autonomous(name="Vision Gold Position Test")
+public class VisionGoldPositionTest extends OpMode {
     private MineralVision vision;
 
     @Override
@@ -69,8 +68,24 @@ public class VisionTest extends OpMode {
         vision.setShowCountours(true);
         //blueVision.setShowCountours(true);
 
-        if(vision.goldMineralFound()== true){
+        List<MatOfPoint> goldContours = vision.getGoldContours();
+        List<MatOfPoint> silverContours = vision.getSilverContours();
+
+        if(vision.goldMineralFound()== true && goldContours.size()  >=1 ){
+            Rect GoldBoundingRect = Imgproc.boundingRect(goldContours.get(0));
+            int  goldXPosition = GoldBoundingRect.x;
+
             telemetry.addData("Apollo","found a gold mineral");
+            telemetry.addData("Number", goldContours.size());
+            telemetry.addData("X", goldXPosition);
+
+            if (goldXPosition<150){
+                telemetry.addData("Gold Position","Left");
+            }else if(goldXPosition > 1000){
+                telemetry.addData("Gold Position","Right");
+            }else if (goldXPosition > 450 && goldXPosition < 650) {
+                telemetry.addData("Gold Position","Middle");
+            }
         }else{
             telemetry.addData("Apollo","did not find a gold mineral");
         }
@@ -81,6 +96,7 @@ public class VisionTest extends OpMode {
         }
         telemetry.update();
     }
+
 
     public void stop() {
         // stop the vision system

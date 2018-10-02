@@ -9,6 +9,11 @@ import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.List;
 
 /**
  * Apollo Autonomus.
@@ -30,7 +35,11 @@ public abstract class AutoMain extends LinearOpMode {
     static final double     mineralGraberPower = 0.7 ;
     private MineralVision vision;
 
-
+    private enum GoldPosition {
+        LEFT,
+        RIGHT,
+        MIDDLE
+    }
 
     public class MineralOnBot{
         HardwareApollo.TYPE_MINERALS[] mineralsType = new HardwareApollo.TYPE_MINERALS[2];
@@ -49,7 +58,7 @@ public abstract class AutoMain extends LinearOpMode {
     }
 
     //The main function of the autonomous
-    void apolloRun(boolean isCrater) {
+    void apolloRun(boolean isCrater){
 
     }
 
@@ -104,6 +113,26 @@ public abstract class AutoMain extends LinearOpMode {
             return HardwareApollo.TYPE_MINERALS.SILVER;
         }
         telemetry.update();
+        return null;
+    }
+
+    //Function returns the location of the gold mineral.
+    public GoldPosition GetGoldMineralPosition(){
+        List<MatOfPoint> goldContours = vision.getGoldContours();
+        List<MatOfPoint> silverContours = vision.getSilverContours();
+
+        if(vision.goldMineralFound()== true && goldContours.size()  >=1 ) {
+            Rect GoldBoundingRect = Imgproc.boundingRect(goldContours.get(0));
+
+            int goldXPosition = GoldBoundingRect.x;
+            if (goldXPosition < 150) {
+                return GoldPosition.LEFT;
+            } else if (goldXPosition > 1000) {
+                return GoldPosition.RIGHT;
+            } else if (goldXPosition > 450 && goldXPosition < 650) {
+                return GoldPosition.MIDDLE;
+            }
+        }
         return null;
     }
 

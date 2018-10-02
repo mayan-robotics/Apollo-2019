@@ -38,14 +38,14 @@ public class GripGoldMineral {
 	 */
 	public void process(Mat source0) {
 		// Step Resize_Image0:
-		Mat resizeImageInput = source0;
-		double resizeImageWidth = 320.0;
-		double resizeImageHeight = 240.0;
-		int resizeImageInterpolation = Imgproc.INTER_CUBIC;
-		resizeImage(resizeImageInput, resizeImageWidth, resizeImageHeight, resizeImageInterpolation, resizeImageOutput);
+		//Mat resizeImageInput = source0;
+		//double resizeImageWidth = 320.0;
+		//double resizeImageHeight = 240.0;
+		//int resizeImageInterpolation = Imgproc.INTER_CUBIC;
+		//resizeImage(resizeImageInput, resizeImageWidth, resizeImageHeight, resizeImageInterpolation, resizeImageOutput);
 
 		// Step HSV_Threshold0:
-		Mat hsvThresholdInput = resizeImageOutput;
+		Mat hsvThresholdInput = source0;
 		double[] hsvThresholdHue = {0.0, 90.9215075652347};
 		double[] hsvThresholdSaturation = {128.41726400011734, 255.0};
 		double[] hsvThresholdValue = {169.69423695005102, 255.0};
@@ -205,9 +205,5 @@ public class GripGoldMineral {
 			output.add(contour);
 		}
 	}
-
-
-
-
 }
 
