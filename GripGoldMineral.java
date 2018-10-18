@@ -28,6 +28,7 @@ public class GripGoldMineral {
 	private Mat hsvThresholdOutput = new Mat();
 	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<MatOfPoint>();
+	private boolean filterContoursOutputIsReady = false;
 /*
 	static {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -43,7 +44,6 @@ public class GripGoldMineral {
 		//double resizeImageHeight = 240.0;
 		//int resizeImageInterpolation = Imgproc.INTER_CUBIC;
 		//resizeImage(resizeImageInput, resizeImageWidth, resizeImageHeight, resizeImageInterpolation, resizeImageOutput);
-
 		// Step HSV_Threshold0:
 		Mat hsvThresholdInput = source0;
 		double[] hsvThresholdHue = {0.0, 90.9215075652347};
@@ -71,7 +71,7 @@ public class GripGoldMineral {
 		double filterContoursMaxRatio = 1000.0;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
 
-	}
+  	}
 
 	/**
 	 * This method is a generated getter for the output of a Resize_Image.
@@ -101,8 +101,16 @@ public class GripGoldMineral {
 	 * This method is a generated getter for the output of a Filter_Contours.
 	 * @return ArrayList<MatOfPoint> output from Filter_Contours.
 	 */
-	public ArrayList<MatOfPoint> filterContoursOutput() {
-		return filterContoursOutput;
+	public synchronized void filterContoursOutput(List<MatOfPoint> newContours) {
+		if (true == filterContoursOutputIsReady) {
+			if (!(findContoursOutput.isEmpty())) {
+				for (int i = 0 ; i < findContoursOutput.size() ; i++) {
+					newContours.add(findContoursOutput.get(i)) ;
+				}
+			}
+            //return contoursGold;
+
+		}
 	}
 
 
@@ -178,6 +186,7 @@ public class GripGoldMineral {
 		double minPerimeter, double minWidth, double maxWidth, double minHeight, double
 		maxHeight, double[] solidity, double maxVertexCount, double minVertexCount, double
 		minRatio, double maxRatio, List<MatOfPoint> output) {
+		filterContoursOutputIsReady = false;
 		final MatOfInt hull = new MatOfInt();
 		output.clear();
 		//operation
@@ -204,6 +213,7 @@ public class GripGoldMineral {
 			if (ratio < minRatio || ratio > maxRatio) continue;
 			output.add(contour);
 		}
+		filterContoursOutputIsReady = true;
 	}
 }
 

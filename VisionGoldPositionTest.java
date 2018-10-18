@@ -9,6 +9,7 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by guinea on 10/5/17.
@@ -49,9 +50,16 @@ import java.util.List;
  * Vision Test.
  * This Class was made for checking and testing the vision is working properly.
  */
+
 @Autonomous(name="Vision Gold Position Test")
 public class VisionGoldPositionTest extends OpMode {
     private MineralVision vision;
+
+    public enum GoldPosition {
+        LEFT,
+        RIGHT,
+        MIDDLE
+    }
 
     @Override
     public void init() {
@@ -65,41 +73,45 @@ public class VisionGoldPositionTest extends OpMode {
 
     @Override
     public void loop() {
-        vision.setShowCountours(true);
-        //blueVision.setShowCountours(true);
-
-        List<MatOfPoint> goldContours = vision.getGoldContours();
-        List<MatOfPoint> silverContours = vision.getSilverContours();
-
-        if(vision.goldMineralFound()== true && goldContours.size()  >=1 ){
-            Rect GoldBoundingRect = Imgproc.boundingRect(goldContours.get(0));
-            int  goldXPosition = GoldBoundingRect.x;
-
-            telemetry.addData("Apollo","found a gold mineral");
-            telemetry.addData("Number", goldContours.size());
-            telemetry.addData("X", goldXPosition);
-
-            if (goldXPosition<150){
-                telemetry.addData("Gold Position","Left");
-            }else if(goldXPosition > 1000){
-                telemetry.addData("Gold Position","Right");
-            }else if (goldXPosition > 450 && goldXPosition < 650) {
-                telemetry.addData("Gold Position","Middle");
-            }
-        }else{
-            telemetry.addData("Apollo","did not find a gold mineral");
-        }
-        if(vision.silverMineralFound()== true){
-            telemetry.addData("Apollo","found a silver mineral");
-        }else{
-            telemetry.addData("Apollo","did not find a silver mineral");
-        }
+        GetGoldLocation();
         telemetry.update();
     }
-
 
     public void stop() {
         // stop the vision system
         vision.disable();
     }
+
+    //Function returns the location of the gold mineral.
+    public GoldPosition GetGoldLocation(){
+        List<MatOfPoint> contoursGold = new ArrayList<>();
+        vision.setShowCountours(true);
+
+        contoursGold.clear();
+        vision.getGoldContours(contoursGold);
+
+        if ((vision.goldMineralFound() == true) && (contoursGold != null)) {
+            if (!contoursGold.isEmpty())  {
+                if (contoursGold.size() >= 1) {
+                    Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
+                    int goldXPosition = GoldBoundingRect.x;
+
+                    if (goldXPosition < 450) {
+                        telemetry.addData("Gold Position", "Left");
+                        return GoldPosition.LEFT;
+                    } else if (goldXPosition > 650) {
+                        telemetry.addData("Gold Position", "Right");
+                        return GoldPosition.RIGHT;
+                    } else if (goldXPosition > 450 && goldXPosition < 650) {
+                        telemetry.addData("Gold Position", "Middle");
+                        return GoldPosition.MIDDLE;
+                    }
+                }
+            }
+        } else {
+            telemetry.addData("Apollo", "did not find a gold mineral");
+        }
+
+        return null;}
+
 }

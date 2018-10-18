@@ -74,11 +74,11 @@ public class VisionTest extends OpMode {
         }else{
             telemetry.addData("Apollo","did not find a gold mineral");
         }
-        if(vision.silverMineralFound()== true){
-            telemetry.addData("Apollo","found a silver mineral");
-        }else{
-            telemetry.addData("Apollo","did not find a silver mineral");
-        }
+        //if(vision.silverMineralFound()== true){
+            //telemetry.addData("Apollo","found a silver mineral");
+        //}else{
+            //telemetry.addData("Apollo","did not find a silver mineral");
+        //}
         telemetry.update();
     }
 
