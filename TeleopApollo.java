@@ -10,19 +10,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 @TeleOp(name="Apollo Teleop", group="Apollo")
 public class TeleopApollo extends OpMode{
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+    static final double speedFactor = 0.5; // Decrease the speed factor
+    static final double limitPoint = 0.5;
 
-    // Declaration of the drive state.
-    private enum DRIVE_CONTROL_STATE {
-        NORMAL,
-        SIDE_WAY_LEFT,
-        SIDE_WAY_RIGHT
-    }
-    // Controller Parameters
-    private class ControlParameters {
-        double LeftPower;
-        double RightPower;
-        DRIVE_CONTROL_STATE driveControlState;
-    }
 
     @Override
     public void init() {
@@ -33,56 +23,37 @@ public class TeleopApollo extends OpMode{
 
     @Override
     public void loop() {
-        if(ControllerWay().driveControlState == DRIVE_CONTROL_STATE.NORMAL){
-            robot.setDriveMotorsPower(ControllerWay().LeftPower, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-            robot.setDriveMotorsPower(ControllerWay().RightPower, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+        double LeftX = gamepad1.left_stick_x;
+        double LeftY = -gamepad1.left_stick_y;
+        double RightX = gamepad1.right_stick_x;
+        double RightY = gamepad1.right_stick_y;
+
+        // All the drive modes controls
+        if (LeftX < -limitPoint && (Math.abs(LeftY) > limitPoint) &&
+                (RightX < -limitPoint && Math.abs(RightY) < limitPoint)){
+            robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_LEFT);
+            telemetry.addData("Drive", "Diagonal LEFT");
         }
-        else if (ControllerWay().driveControlState == DRIVE_CONTROL_STATE.SIDE_WAY_LEFT){
-            robot.setDriveMotorsPower(ControllerWay().LeftPower, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAY_LEFT_DRIVE);
+        else if (LeftX > limitPoint && (Math.abs(LeftY) > limitPoint) &&
+                (RightX > limitPoint && Math.abs(RightY) < limitPoint)){
+            robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_RIGHT);
+            telemetry.addData("Drive", "Diagonal Right");
         }
-        else if (ControllerWay().driveControlState == DRIVE_CONTROL_STATE.SIDE_WAY_RIGHT){
-            robot.setDriveMotorsPower(ControllerWay().RightPower, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAY_RIGHT_DRIVE);
+        else if ((Math.abs(LeftX) > Math.abs(LeftY) && Math.abs(LeftX) > limitPoint) &&
+                (Math.abs(RightX) > Math.abs(RightY) && Math.abs(RightX)> limitPoint)){
+            telemetry.addData("Drive", "Side Ways");
+            robot.setDriveMotorsPower(LeftX*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+        }
+        else{
+            robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+            robot.setDriveMotorsPower(RightY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+            telemetry.addData("Drive", "normal");
         }
 
+        telemetry.update();
     }
     public void stop() {
         robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-    }
-
-    // This function declares the drive state of the robot based on the controller.
-    // Side way drive should activate only when both joy sticks are pushed to the same side.
-    public ControlParameters ControllerWay() {
-        final double speedFactor = 0.5; // Decrease the speed factor
-        final double LeftLimitPoint = -0.5;
-        final double RightLimitPoint = 0.5;
-        // The joystick goes negative when pushed forwards, so negate it)
-        double LeftX = -gamepad1.left_stick_x;
-        double LeftY = -gamepad1.left_stick_y;
-        double RightX = -gamepad1.right_stick_x;
-        double RightY = -gamepad1.right_stick_y;
-
-        ControlParameters driveControlParameters = null;
-
-        if ((Math.abs(LeftX) > Math.abs(LeftY) && LeftX < LeftLimitPoint) &&
-                (Math.abs(RightX) > Math.abs(RightY) && RightX < LeftLimitPoint)){
-
-            driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.SIDE_WAY_LEFT;
-            driveControlParameters.LeftPower = LeftX*speedFactor ;
-            driveControlParameters.RightPower = 0.0 ;
-        }
-        else if ((Math.abs(LeftX) > Math.abs(LeftY) && LeftX > RightLimitPoint) &&
-                    (Math.abs(RightX) > Math.abs(RightY) && RightX > RightLimitPoint)) {
-            driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.SIDE_WAY_RIGHT;
-            driveControlParameters.RightPower = RightX*speedFactor ;
-            driveControlParameters.LeftPower = 0.0 ;
-        }
-        else{
-            driveControlParameters.driveControlState=DRIVE_CONTROL_STATE.NORMAL;
-            driveControlParameters.LeftPower =LeftY*speedFactor ;
-            driveControlParameters.RightPower =RightY*speedFactor ;
-        }
-        return driveControlParameters;
-
     }
 
 }
