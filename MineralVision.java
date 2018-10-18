@@ -66,6 +66,7 @@ public class MineralVision extends OpenCVPipeline {
     private  Rect[] targetRects = new Rect[2];
     private boolean findGoldMineral = false;
     private boolean findSilverMineral = false;
+    private boolean contoursOutputIsReady = false;
 
     private List<MatOfPoint> contoursGold = new ArrayList<>();
     private List<MatOfPoint> contoursSilver = new ArrayList<>();
@@ -79,19 +80,29 @@ public class MineralVision extends OpenCVPipeline {
     //public synchronized List<MatOfPoint> getContours() {
     //    return contours;
     //}
-    public synchronized List<MatOfPoint> getGoldContours() {
-        return contoursGold;
+    public synchronized void getGoldContours(List<MatOfPoint> newContours) {
+        if (contoursOutputIsReady) {
+            if (!(contoursGold.isEmpty())) {
+                newContours.addAll(contoursGold);
+            }
+        }
+        //return contoursGold;
     }
+
     public synchronized List<MatOfPoint> getSilverContours() {
         return contoursSilver;
     }
+    public synchronized List<MatOfPoint> getGoldContours() {
+        return contoursGold;
+    }
+
 
     public synchronized boolean goldMineralFound () {
         return (findGoldMineral);
     }
-    public synchronized boolean silverMineralFound () {
-        return (findSilverMineral);
-    }
+    //public synchronized boolean silverMineralFound () {
+        //return (findSilverMineral);
+    //}
 
     // This is called every camera frame.
     @Override
@@ -100,12 +111,16 @@ public class MineralVision extends OpenCVPipeline {
         rgba.copyTo(imageRGB);
 
         gripGold.process(imageRGB);
-        contoursGold = new ArrayList<>();
-        contoursGold = gripGold.filterContoursOutput();
+        contoursOutputIsReady = false;
+        //contoursGold = new ArrayList<>();
+        contoursGold.clear();
+        //contoursGold = gripGold.filterContoursOutput();
+        gripGold.filterContoursOutput(contoursGold);
+        contoursOutputIsReady = true;
 
-        gripSilver.process(imageRGB);
-        contoursSilver = new ArrayList<>();
-        contoursSilver = gripSilver.filterContoursOutput();
+        //gripSilver.process(imageRGB);
+        //ontoursSilver = new ArrayList<>();
+        //contoursSilver = gripSilver.filterContoursOutput();
 
         if ((!(contoursGold.isEmpty())) && (showContours)) {
             Imgproc.drawContours(imageRGB, contoursGold, -1,  new Scalar(255, 210, 0), 4, 8);
@@ -114,12 +129,12 @@ public class MineralVision extends OpenCVPipeline {
             findGoldMineral = false;
         }
 
-        if ((!(contoursSilver.isEmpty())) && (showContours)) {
-            Imgproc.drawContours(imageRGB, contoursSilver, -1, new Scalar(0, 230, 255), 4, 8);
-            findSilverMineral = true;
-        } else {
-            findSilverMineral = false;
-        }
+        //if ((!(contoursSilver.isEmpty())) && (showContours)) {
+        //    Imgproc.drawContours(imageRGB, contoursSilver, -1, new Scalar(0, 230, 255), 4, 8);
+        //    findSilverMineral = true;
+        //} else {
+        //    findSilverMineral = false;
+        //}
 
         return imageRGB; // display the image seen by the camera
     }
