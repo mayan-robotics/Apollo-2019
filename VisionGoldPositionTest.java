@@ -65,7 +65,7 @@ public class VisionGoldPositionTest extends OpMode {
     public void init() {
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
-        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance(),2);
+        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         vision.setShowCountours(false);
         // start the vision system
         vision.enable();
