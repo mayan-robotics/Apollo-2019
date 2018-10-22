@@ -113,5 +113,4 @@ public class VisionGoldPositionTest extends OpMode {
         }
 
         return null;}
-
 }
