@@ -4,12 +4,14 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by guinea on 10/5/17.
@@ -51,9 +53,12 @@ import java.util.ArrayList;
  * This Class was made for checking and testing the vision is working properly.
  */
 
-@Autonomous(name="Vision Gold Position Test")
-public class VisionGoldPositionTest extends OpMode {
+@Autonomous(name="Vision Cam Test")
+public class VisionCam extends OpMode {
     private MineralVision vision;
+    HardwareCam camera = new HardwareCam(); // use Apollo's hardware
+    VuforiaLocalizer vuforia;
+
 
     public enum GoldPosition {
         LEFT,
@@ -63,23 +68,33 @@ public class VisionGoldPositionTest extends OpMode {
 
     @Override
     public void init() {
+
         vision = new MineralVision();
+
+
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance(),2);
         vision.setShowCountours(false);
+
+        //vuforia.getFrameOnce(camera.cam.);
+
+        //camera.cam.vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        //camera.cam.vision.enable();
+        //vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         // start the vision system
         vision.enable();
     }
 
     @Override
     public void loop() {
-        GetGoldLocation();
+        //GetGoldLocation();
         telemetry.update();
     }
 
     public void stop() {
         // stop the vision system
         vision.disable();
+        //camera.cam.vision.disable();
     }
 
     //Function returns the location of the gold mineral.
