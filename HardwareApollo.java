@@ -45,16 +45,21 @@ public class HardwareApollo {
     }
 
 
+    // Encoder
     static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
     static final double     WHEEL_DIAMETER   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_CM         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
         (WHEEL_DIAMETER * 3.1415);
 
-    //servo divider positions
-    static final double mineralsDividerMiddle = 0.5;
-    static final double mineralsDividerLeft = 0.3;
-    static final double mineralsDividerRight = 0.7;
+    // Servo mineral divider positions
+    static final double dividerMiddle = 0.5;
+    static final double dividerLeft = 0.4;
+    static final double dividerRight = 0.6;
+
+    //Mineral Blocker Positions
+    static final double block = 0;
+    static final double dontBlock = 0.2;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -66,10 +71,6 @@ public class HardwareApollo {
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
-        // Servo mineral divider positions
-
-
-
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -94,8 +95,8 @@ public class HardwareApollo {
         runAllMineralsMotor(0);
 
         // Set all servos
-        mineralsDivider.setPosition(0.5);
-
+        mineralsDivider.setPosition(dividerMiddle);
+        blockMineralServo.setPosition(block);
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -181,10 +182,10 @@ public class HardwareApollo {
                 driveRightBack.setTargetPosition(newRightBackTarget);
                 break;
             case SIDE_WAYS:
-                newLeftFrontTarget = driveLeftFront.getCurrentPosition() - + (int)(Cm*COUNTS_PER_CM);
-                newLeftBackTarget = driveLeftBack.getCurrentPosition() + + (int)(Cm*COUNTS_PER_CM);
-                newRightFrontTarget = driveRightFront.getCurrentPosition() + + (int)(Cm*COUNTS_PER_CM);
-                newRightBackTarget = driveRightBack.getCurrentPosition() - + (int)(Cm*COUNTS_PER_CM);
+                newLeftFrontTarget = driveLeftFront.getCurrentPosition() +  (int)(Cm*COUNTS_PER_CM);
+                newLeftBackTarget = driveLeftBack.getCurrentPosition() - (int)(Cm*COUNTS_PER_CM);
+                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
+                newRightBackTarget = driveRightBack.getCurrentPosition() - (int)(Cm*COUNTS_PER_CM);
 
                 driveLeftBack.setTargetPosition(newLeftFrontTarget);
                 driveLeftFront.setTargetPosition(newLeftBackTarget);
@@ -214,20 +215,17 @@ public class HardwareApollo {
         driveLeftBack.setMode(runMode);
         driveRightFront.setMode(runMode);
         driveRightBack.setMode(runMode);
-
     }
 
     //Function to set the power to all the minerals motors.
     public void runAllMineralsMotor(double power) {
         mineralGrab.setPower(power);
         graberPusher.setPower(power);
-
     }
 
     //Function to set the run mode for all the minerals motors.
     public void setModeAllMineralsMotor(DcMotor.RunMode runMode) {
         mineralGrab.setMode(runMode);
         graberPusher.setMode(runMode);
-
     }
 }

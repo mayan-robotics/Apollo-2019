@@ -27,6 +27,7 @@ public abstract class AutoMain extends LinearOpMode {
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 0.7;     // Nominal speed for better accuracy.
+    static final double DRIVE_SIDEWAYS_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.5;     // Nominal half speed for better accuracy.
 
     static final double SIDE_WAYS_DRIVE_SPEED = 0.4;     // Nominal speed for better accuracy.
@@ -57,9 +58,13 @@ public abstract class AutoMain extends LinearOpMode {
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
-        vision.setShowCountours(false);
         // start the vision system
         vision.enable();
+        vision.setShowCountours(true);
+
+        // Send telemetry message to signify robot waiting;
+        telemetry.addData("Apollo", "Ready");
+        telemetry.update();
     }
 
     //The main function of the autonomous
@@ -68,11 +73,19 @@ public abstract class AutoMain extends LinearOpMode {
         while (GetGoldLocation() != GoldPosition.MIDDLE){
             moveToGoldMineralByCamera();
         }
+        waitSeconds(1);
+        while (GetGoldLocation() != GoldPosition.MIDDLE){
+            moveToGoldMineralByCamera();
+        }
+        telemetry.addData("Vision","cube moved");
+        telemetry.update();
 
-        if(isCrater){
+        if(isCrater)
+        {
 
         }
-        else if (!isCrater){
+        else if (!isCrater)
+        {
 
         }
 
@@ -96,13 +109,10 @@ public abstract class AutoMain extends LinearOpMode {
 
         if ((vision.goldMineralFound()) && (contoursGold != null)) {
             if (!contoursGold.isEmpty())  {
-                //Rect GoldBoundingRect = new Rect(0, 0, 10, 10);
 
                 if (contoursGold.get(0) != null) {
 
                     Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
-                    //Rect GoldBoundingRect1 = new Rect(0, 0, 10, 10);
-
                     int goldXPosition = GoldBoundingRect.x;
 
 
@@ -127,10 +137,10 @@ public abstract class AutoMain extends LinearOpMode {
         if(GetGoldLocation()!= null) {
             if (GetGoldLocation() == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
-                robot.setDriveMotorsPower(0.5, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+                robot.setDriveMotorsPower(-DRIVE_SIDEWAYS_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             } else if (GetGoldLocation() == GoldPosition.RIGHT) {
                 telemetry.addData("Drive", "right");
-                robot.setDriveMotorsPower(0.5, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);            }
+                robot.setDriveMotorsPower(DRIVE_SIDEWAYS_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);            }
             else if (GetGoldLocation() == GoldPosition.MIDDLE) {
                 telemetry.addData("Drive", "Middle");
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
