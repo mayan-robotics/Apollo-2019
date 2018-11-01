@@ -13,14 +13,14 @@ public class TeleopApollo extends OpMode{
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private MineralVision vision;
 
-    static double speedFactor = 1; // Decrease the speed factor
-    //double servo = 0; // Decrease the speed factor
+    static double speedFactor = 1; // Speed factor
     static final double limitPoint = 0.4;
 
 
 
     @Override
     public void init() {
+        //Hardware init
         robot.init(hardwareMap);
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
@@ -36,13 +36,13 @@ public class TeleopApollo extends OpMode{
 
     @Override
     public void loop() {
-        //Mineral divider By camera
-        MineralDivideByVision();
         //Controllers drive sticks inputs
         double LeftX = gamepad1.left_stick_x;
         double LeftY = -gamepad1.left_stick_y;
         double RightX = gamepad1.right_stick_x;
-        double RightY = gamepad1.right_stick_y;
+        double RightY = -gamepad1.right_stick_y;
+        //Mineral divider By camera
+        MineralDivideByVision();
 
         //Drive speed control
         if (gamepad1.right_stick_button && gamepad1.left_stick_button){
@@ -53,26 +53,28 @@ public class TeleopApollo extends OpMode{
         }
 
         // Drive modes controls
-        if (LeftX < -limitPoint && (Math.abs(LeftY) > limitPoint) &&
-                (RightX < -limitPoint && Math.abs(RightY) < limitPoint)){
+        if ((Math.abs(LeftX) > Math.abs(LeftY) && Math.abs(LeftX) > limitPoint && Math.abs(LeftY)< 0.8) &&
+                (Math.abs(RightX) > Math.abs(RightY) && Math.abs(RightX)> limitPoint && Math.abs(RightY)< 0.8 &&
+                        (RightX<0 && LeftX<0 || RightX>0 && LeftX>0 ))){
+            robot.setDriveMotorsPower(LeftX*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            telemetry.addData("Drive", "Side ways");
+        }
+        else if (LeftX < -limitPoint && (Math.abs(LeftY) > limitPoint) &&
+                (RightX < -limitPoint && Math.abs(RightY) > limitPoint)){
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_LEFT);
-            telemetry.addData("Drive", "Diagonal LEFT");
+            telemetry.addData("Drive", "DIAGONAL_LEFT");
         }
         else if (LeftX > limitPoint && (Math.abs(LeftY) > limitPoint) &&
-                (RightX > limitPoint && Math.abs(RightY) < limitPoint)){
+                (RightX > limitPoint && Math.abs(RightY) > limitPoint)){
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_RIGHT);
-            telemetry.addData("Drive", "Diagonal Right");
-        }
-        else if ((Math.abs(LeftX) > Math.abs(LeftY) && Math.abs(LeftX) > limitPoint) &&
-                (Math.abs(RightX) > Math.abs(RightY) && Math.abs(RightX)> limitPoint)){
-            telemetry.addData("Drive", "Side Ways");
-            robot.setDriveMotorsPower(LeftX*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            telemetry.addData("Drive", "DIAGONAL_RIGHT");
         }
         else{
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
             robot.setDriveMotorsPower(RightY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-            telemetry.addData("Drive", "normal");
+            telemetry.addData("Drive", "Normal");
         }
+        telemetry.update();
 
 
         //Mineral graber control
@@ -94,15 +96,15 @@ public class TeleopApollo extends OpMode{
 
         //Mineral lift Control
         if(gamepad2.left_stick_y>0.1){
-            robot.graberPusher.setPower(1);
+            robot.lift.setPower(1);
             robot.mineralGrab.setPower(1);
             robot.blockMineralServo.setPosition(robot.block);
         }
         else if(gamepad2.left_stick_y<-0.1){
-            robot.graberPusher.setPower(-1);
+            robot.lift.setPower(-1);
         }
         else{
-            robot.graberPusher.setPower(0);
+            robot.lift.setPower(0);
         }
 
 

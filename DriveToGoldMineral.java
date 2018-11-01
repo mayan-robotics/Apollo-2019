@@ -12,21 +12,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Autonomous(name="Drive to gold mineral", group="Apollo")
+@Autonomous(name=" Test: Drive to gold mineral", group="Apollo")
 public class DriveToGoldMineral extends LinearOpMode {
+    HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+
+    private MineralVision vision;
+    private List<MatOfPoint> contoursGold = new ArrayList<>();
 
     public enum GoldPosition {
         LEFT,
         RIGHT,
         MIDDLE
     }
-    int i = 0;
-
-    private MineralVision vision;
-    private List<MatOfPoint> contoursGold = new ArrayList<>();
 
     @Override
     public void runOpMode() throws InterruptedException {
+        robot.init(hardwareMap);
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
@@ -38,48 +39,35 @@ public class DriveToGoldMineral extends LinearOpMode {
         telemetry.update();
         waitForStart();
 
-        //vision.setShowCountours(true);
-        //List<MatOfPoint> goldContours = vision.getGoldContours();
-        //GetGoldLocation();
-        //moveToGoldMineralByCamera();
-        while (opModeIsActive()) {
+        while (opModeIsActive())
+        {
             vision.setShowCountours(true);
             moveToGoldMineralByCamera();
-
             telemetry.update();
         }
-
         vision.disable();
     }
 
-
     //Function returns the location of the gold mineral.
     public GoldPosition GetGoldLocation(){
-
         try{
         contoursGold.clear();
         vision.getGoldContours(contoursGold);
 
         if ((vision.goldMineralFound()) && (contoursGold != null)) {
             if (!contoursGold.isEmpty())  {
-                //Rect GoldBoundingRect = new Rect(0, 0, 10, 10);
-
                 if (contoursGold.get(0) != null) {
-
-                    Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
-                    //Rect GoldBoundingRect1 = new Rect(0, 0, 10, 10);
-
+                    Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));//Rect GoldBoundingRect1 = new Rect(0, 0, 10, 10);
                     int goldXPosition = GoldBoundingRect.x;
 
-
                     if (goldXPosition < 450) {
-                        //telemetry.addData("Gold Position", "Left");
+                        telemetry.addData("Gold Position", "Left");
                         return GoldPosition.LEFT;
                     } else if (goldXPosition > 650) {
-                        //telemetry.addData("Gold Position", "Right");
+                        telemetry.addData("Gold Position", "Right");
                         return GoldPosition.RIGHT;
                     } else if (goldXPosition > 450 && goldXPosition < 650) {
-                        //telemetry.addData("Gold Position", "Middle");
+                        telemetry.addData("Gold Position", "Middle");
                         return GoldPosition.MIDDLE;
                     }
                 }
@@ -88,37 +76,24 @@ public class DriveToGoldMineral extends LinearOpMode {
         }catch (Exception e){
             telemetry.addData("Camera", "ERROR");
         }
-        //else {
-            //telemetry.addData("Apollo", "did not find a gold mineral");
-        //}
-        //if (vision.silverMineralFound() == true) {
-        //telemetry.addData("Apollo", "found a silver mineral");
-        // } else {
-        //telemetry.addData("Apollo", "did not find a silver mineral");
-        //}
-        //telemetry.update();
 
         return null;}
 
 
     public void moveToGoldMineralByCamera(){
-        //List<MatOfPoint> goldContours = vision.getGoldContours();
-        //if (GetGoldLocation()!= null) {
-        //while (GetGoldLocation() != GoldPosition.MIDDLE && opModeIsActive()) {
-        //if(vision.goldMineralFound()== true && goldContours.size()  >=1 ) {
         if(GetGoldLocation()!= null) {
             if (GetGoldLocation() == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
-                //robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAY_LEFT_DRIVE);
+                robot.setDriveMotorsPower(-0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             } else if (GetGoldLocation() == GoldPosition.RIGHT) {
                 telemetry.addData("Drive", "right");
-                //robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAY_RIGHT_DRIVE);
+                robot.setDriveMotorsPower(0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
             else if (GetGoldLocation() == GoldPosition.MIDDLE) {
                 telemetry.addData("Drive", "Middle");
-                //robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAY_RIGHT_DRIVE);
+                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
             }else {
-                telemetry.addData("camera", "error");
+                telemetry.addData("camera", "NO GOLD MINERAl");
             }
         }
 

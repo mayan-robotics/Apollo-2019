@@ -22,7 +22,7 @@ public class HardwareApollo {
     public DcMotor  driveRightBack = null;
 
     public DcMotor  mineralGrab = null;
-    public DcMotor  graberPusher = null;
+    public DcMotor  lift = null;
 
     public Servo    blockMineralServo = null;
     public Servo    mineralsDivider = null;
@@ -44,13 +44,12 @@ public class HardwareApollo {
         SILVER,
     }
 
-
     // Encoder
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
-    static final double     WHEEL_DIAMETER   = 4.0 ;     // For figuring circumference
-    static final double     COUNTS_PER_CM         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-        (WHEEL_DIAMETER * 3.1415);
+    static final double     COUNTS_PER_MOTOR_REV    = 560 ;    // eg: TETRIX Motor Encoder
+    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+                                                        (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // Servo mineral divider positions
     static final double dividerMiddle = 0.5;
@@ -75,24 +74,27 @@ public class HardwareApollo {
         hwMap = ahwMap;
 
         // Define and Initialize ALL Motors
-        driveLeftFront  = hwMap.get(DcMotor.class, "");
-        driveLeftBack  = hwMap.get(DcMotor.class, "");
-        driveRightFront  = hwMap.get(DcMotor.class, "");
-        driveRightBack  = hwMap.get(DcMotor.class, "");
+        driveLeftFront  = hwMap.get(DcMotor.class, "dlf");
+        driveLeftBack  = hwMap.get(DcMotor.class, "dlb");
+        driveRightFront  = hwMap.get(DcMotor.class, "drf");
+        driveRightBack  = hwMap.get(DcMotor.class, "drb");
 
-        mineralGrab  = hwMap.get(DcMotor.class, "");
-        graberPusher  = hwMap.get(DcMotor.class, "");
+        mineralGrab  = hwMap.get(DcMotor.class, "m");
+        lift  = hwMap.get(DcMotor.class, "lift");
 
         // Define and initialize ALL servos.
-
-        blockMineralServo  = hwMap.get(Servo.class, "");
-        mineralsDivider  = hwMap.get(Servo.class, "");
+        blockMineralServo  = hwMap.get(Servo.class, "bs");
+        mineralsDivider  = hwMap.get(Servo.class, "md");
 
         // Define and initialize ALL sensors
 
         // Set all motors to zero power
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
-        runAllMineralsMotor(0);
+        mineralGrab.setPower(0);
+        lift.setPower(0);
+
+        driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
+        driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
         // Set all servos
         mineralsDivider.setPosition(dividerMiddle);
@@ -117,7 +119,7 @@ public class HardwareApollo {
 
         // Set all motors to run without encoders.
         setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        setModeAllMineralsMotor(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
 
@@ -147,17 +149,14 @@ public class HardwareApollo {
                 driveLeftFront.setPower(power);
                 driveRightBack.setPower(power);
                 break;
-
             case ALL:
-                default:
+            default:
                 driveLeftFront.setPower(power);
                 driveLeftBack.setPower(power);
                 driveRightFront.setPower(power);
                 driveRightBack.setPower(power);
                 break;
-
         }
-
     }
 
     //Function to set the position to all the drive motors.
@@ -166,26 +165,29 @@ public class HardwareApollo {
         int newLeftBackTarget;
         int newRightFrontTarget;
         int newRightBackTarget;
+        double inch;
+        inch = cmToInch(Cm);
+
         switch (driverMotorType){
             case LEFT:
-                newLeftFrontTarget = driveLeftFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
+                newLeftFrontTarget = driveLeftFront.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
 
                 driveLeftFront.setTargetPosition(newLeftFrontTarget);
                 driveLeftBack.setTargetPosition(newLeftBackTarget);
                 break;
             case RIGHT:
-                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
+                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
 
                 driveRightFront.setTargetPosition(newRightFrontTarget);
                 driveRightBack.setTargetPosition(newRightBackTarget);
                 break;
             case SIDE_WAYS:
-                newLeftFrontTarget = driveLeftFront.getCurrentPosition() +  (int)(Cm*COUNTS_PER_CM);
-                newLeftBackTarget = driveLeftBack.getCurrentPosition() - (int)(Cm*COUNTS_PER_CM);
-                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newRightBackTarget = driveRightBack.getCurrentPosition() - (int)(Cm*COUNTS_PER_CM);
+                newLeftFrontTarget = driveLeftFront.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
+                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newRightFrontTarget = driveRightFront.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
+                newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
 
                 driveLeftBack.setTargetPosition(newLeftFrontTarget);
                 driveLeftFront.setTargetPosition(newLeftBackTarget);
@@ -194,19 +196,24 @@ public class HardwareApollo {
                 break;
             case ALL:
             default:
-                newLeftFrontTarget = driveLeftFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
-                newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(Cm*COUNTS_PER_CM);
+                newLeftFrontTarget = driveLeftFront.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newRightFrontTarget = driveRightFront.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
 
                 driveLeftFront.setTargetPosition(newLeftFrontTarget);
                 driveLeftBack.setTargetPosition(newLeftBackTarget);
                 driveRightFront.setTargetPosition(newRightFrontTarget);
                 driveRightBack.setTargetPosition(newRightBackTarget);
                 break;
-
         }
+    }
 
+    //Function to set the position to all the drive motors.
+    public void setLiftMotorsPosition(double ticks) {
+        int newLift;
+        newLift = lift.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
+        lift.setTargetPosition(newLift);
     }
 
     //Function to set the run mode for all the drive motors.
@@ -215,17 +222,13 @@ public class HardwareApollo {
         driveLeftBack.setMode(runMode);
         driveRightFront.setMode(runMode);
         driveRightBack.setMode(runMode);
+
     }
 
-    //Function to set the power to all the minerals motors.
-    public void runAllMineralsMotor(double power) {
-        mineralGrab.setPower(power);
-        graberPusher.setPower(power);
-    }
-
-    //Function to set the run mode for all the minerals motors.
-    public void setModeAllMineralsMotor(DcMotor.RunMode runMode) {
-        mineralGrab.setMode(runMode);
-        graberPusher.setMode(runMode);
+    //Function converts centimeters to inches.
+    public double cmToInch(double cm){
+        double inch;
+        inch=cm*0.393700787;
+        return inch;
     }
 }

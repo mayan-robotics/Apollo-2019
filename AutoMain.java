@@ -20,7 +20,8 @@ import java.util.List;
  * Apollo Autonomus.
  */
 
-public abstract class AutoMain extends LinearOpMode {
+public abstract class AutoMain extends LinearOpMode
+{
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -29,7 +30,6 @@ public abstract class AutoMain extends LinearOpMode {
     static final double DRIVE_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double DRIVE_SIDEWAYS_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.5;     // Nominal half speed for better accuracy.
-
     static final double SIDE_WAYS_DRIVE_SPEED = 0.4;     // Nominal speed for better accuracy.
 
 
@@ -47,13 +47,10 @@ public abstract class AutoMain extends LinearOpMode {
         MIDDLE
     }
 
-    public class MineralOnBot {
-        HardwareApollo.TYPE_MINERALS[] mineralsType = new HardwareApollo.TYPE_MINERALS[2];
-        int numberOfMinerals;
-    }
 
     //Init function, hardwareMap
     public void apolloInit() {
+        //Hardware init
         robot.init(hardwareMap);
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
@@ -68,7 +65,8 @@ public abstract class AutoMain extends LinearOpMode {
     }
 
     //The main function of the autonomous
-    void apolloRun(boolean isCrater) {
+    void apolloRun(boolean isCrater)
+    {
         vision.setShowCountours(true);
         while (GetGoldLocation() != GoldPosition.MIDDLE){
             moveToGoldMineralByCamera();
@@ -92,7 +90,8 @@ public abstract class AutoMain extends LinearOpMode {
     }
 
     //Function returns which mineral the camera detected.
-    public HardwareApollo.TYPE_MINERALS mineralTypeDetect() {
+    public HardwareApollo.TYPE_MINERALS mineralTypeDetect()
+    {
         vision.setShowCountours(true);
         if (vision.goldMineralFound() == true) {
             return HardwareApollo.TYPE_MINERALS.GOLD;
@@ -102,7 +101,8 @@ public abstract class AutoMain extends LinearOpMode {
     }
 
     //Function returns the location of the gold mineral.
-    public GoldPosition GetGoldLocation(){
+    public GoldPosition GetGoldLocation()
+    {
 
         contoursGold.clear();
         vision.getGoldContours(contoursGold);
@@ -129,7 +129,8 @@ public abstract class AutoMain extends LinearOpMode {
                 }
             }
         }
-        return null;}
+        return null;
+    }
 
 
     public void moveToGoldMineralByCamera(){
@@ -148,11 +149,11 @@ public abstract class AutoMain extends LinearOpMode {
                 telemetry.addData("camera", "error");
             }
         }
-
     }
 
 
-    public void waitSeconds(double seconds) {
+    public void waitSeconds(double seconds)
+    {
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < seconds)) {
         }
@@ -168,222 +169,204 @@ public abstract class AutoMain extends LinearOpMode {
      *  3) Driver stops the opmode running.
      */
 
-        public void gyroDrive ( double speed,
-        double Distance,
-        double angle){
+    public void gyroDrive ( double speed,
+                            double Distance,
+                            double angle)
+    {
 
-            int newLeftTarget;
-            int newRightTarget;
-            int moveCounts;
-            double max;
-            double error;
-            double steer;
-            double leftSpeed;
-            double rightSpeed;
+        int moveCounts;
+        double max;
+        double error;
+        double steer;
+        double leftSpeed;
+        double rightSpeed;
 
-            // Ensure that the opmode is still active
-            if (opModeIsActive()) {
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
 
-                // Determine new target position, and pass to motor controller
-                moveCounts = (int) (Distance);
-                //newLeftTarget = robot.driveLeftFront.getCurrentPosition() + moveCounts;
-                //newRightTarget = robot.driveRightFront.getCurrentPosition() + moveCounts;
+            // Determine new target position, and pass to motor controller
+            moveCounts = (int) (Distance);
 
-                // Set Target and Turn On RUN_TO_POSITION
-                //robot.setDriveMotorsPosition(newLeftTarget, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-                //robot.setDriveMotorsPosition(newRightTarget, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+            // Set Target and Turn On RUN_TO_POSITION
+            robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+            robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
 
 
-                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                // start motion.
-                speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+            // start motion.
+            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
 
-                robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+            robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
-                // keep looping while we are still active, and BOTH motors are running.
-                while (opModeIsActive() &&
-                        (robot.driveLeftFront.isBusy()
-                                && robot.driveLeftBack.isBusy()
-                                && robot.driveRightFront.isBusy()
-                                && robot.driveRightBack.isBusy())) {
+            // keep looping while we are still active, and BOTH motors are running.
+            while (opModeIsActive() &&
+                    (robot.driveLeftFront.isBusy()
+                            && robot.driveLeftBack.isBusy()
+                            && robot.driveRightFront.isBusy()
+                            && robot.driveRightBack.isBusy())) {
 
-                    // adjust relative speed based on heading error.
-                    error = getError(angle);
-                    steer = getSteer(error, P_DRIVE_COEFF);
+                // adjust relative speed based on heading error.
+                error = getError(angle);
+                steer = getSteer(error, P_DRIVE_COEFF);
 
-                    // if driving in reverse, the motor correction also needs to be reversed
-                    if (Distance < 0)
-                        steer *= -1.0;
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (Distance < 0)
+                    steer *= -1.0;
 
-                    leftSpeed = speed - steer;
-                    rightSpeed = speed + steer;
+                leftSpeed = speed - steer;
+                rightSpeed = speed + steer;
 
-                    // Normalize speeds if either one exceeds +/- 1.0;
-                    max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-                    if (max > 1.0) {
-                        leftSpeed /= max;
-                        rightSpeed /= max;
-                    }
-
-                    robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-                    robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0) {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
                 }
 
-                // Stop all motion;
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
 
-                // Turn off RUN_TO_POSITION
-                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-        }
-
-        /**
-         *  Method to spin on central axis to point in a new direction.
-         *  Move will stop if either of these conditions occur:
-         *  1) Move gets to the heading (angle)
-         *  2) Driver stops the opmode running.
-         * @param speed Desired speed of turn.
-         * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-         *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-         *                   If a relative angle is required, add/subtract from current heading.
-         */
-        public void gyroTurn ( double speed, double angle){
-
-            // keep looping while we are still active, and not on heading.
-            while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
-                // Update telemetry & Allow time for other processes to run.
-                telemetry.update();
-            }
-        }
-
-        /**
-         *  Method to obtain & hold a heading for a finite amount of time
-         *  Move will stop once the requested time has elapsed
-         *
-         * @param speed      Desired speed of turn.
-         * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
-         *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-         *                   If a relative angle is required, add/subtract from current heading.
-         * @param holdTime   Length of time (in seconds) to hold the specified heading.
-         */
-        public void gyroHold ( double speed, double angle, double holdTime){
-
-            ElapsedTime holdTimer = new ElapsedTime();
-
-            // keep looping while we have time remaining.
-            holdTimer.reset();
-            while (opModeIsActive() && (holdTimer.time() < holdTime)) {
-                // Update telemetry & Allow time for other processes to run.
-                onHeading(speed, angle, P_TURN_COEFF);
-                telemetry.update();
             }
 
             // Stop all motion;
             robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
+            // Turn off RUN_TO_POSITION
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
+    /**
+     *  Method to spin on central axis to point in a new direction.
+     *  Move will stop if either of these conditions occur:
+     *  1) Move gets to the heading (angle)
+     *  2) Driver stops the opmode running.
+     * @param speed Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     */
+    public void gyroTurn ( double speed, double angle)
+    {
+
+        // keep looping while we are still active, and not on heading.
+        while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
+            // Update telemetry & Allow time for other processes to run.
+            telemetry.update();
+        }
+    }
+
+    /**
+     *  Method to obtain & hold a heading for a finite amount of time
+     *  Move will stop once the requested time has elapsed
+     *
+     * @param speed      Desired speed of turn.
+     * @param angle      Absolute Angle (in Degrees) relative to last gyro reset.
+     *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                   If a relative angle is required, add/subtract from current heading.
+     * @param holdTime   Length of time (in seconds) to hold the specified heading.
+     */
+    public void gyroHold ( double speed, double angle, double holdTime)
+    {
+
+        ElapsedTime holdTimer = new ElapsedTime();
+
+        // keep looping while we have time remaining.
+        holdTimer.reset();
+        while (opModeIsActive() && (holdTimer.time() < holdTime)) {
+            // Update telemetry & Allow time for other processes to run.
+            onHeading(speed, angle, P_TURN_COEFF);
+            telemetry.update();
         }
 
-        /**
-         * Perform one cycle of closed loop heading control.
-         *
-         * @param speed     Desired speed of turn.
-         * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
-         *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
-         *                  If a relative angle is required, add/subtract from current heading.
-         * @param PCoeff    Proportional Gain coefficient
-         * @return
-         */
-        boolean onHeading ( double speed, double angle, double PCoeff){
-            double error;
-            double steer;
-            boolean onTarget = false;
-            double leftSpeed;
-            double rightSpeed;
+        // Stop all motion;
+        robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
-            // determine turn power based on +/- error
-            error = getError(angle);
+    }
 
-            if (Math.abs(error) <= HEADING_THRESHOLD) {
-                steer = 0.0;
-                leftSpeed = 0.0;
-                rightSpeed = 0.0;
-                onTarget = true;
-            } else {
-                steer = getSteer(error, PCoeff);
-                rightSpeed = speed * steer;
-                leftSpeed = -rightSpeed;
-            }
+    /**
+     * Perform one cycle of closed loop heading control.
+     *
+     * @param speed     Desired speed of turn.
+     * @param angle     Absolute Angle (in Degrees) relative to last gyro reset.
+     *                  0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
+     *                  If a relative angle is required, add/subtract from current heading.
+     * @param PCoeff    Proportional Gain coefficient
+     * @return
+     */
+    boolean onHeading ( double speed, double angle, double PCoeff)
+    {
+        double error;
+        double steer;
+        boolean onTarget = false;
+        double leftSpeed;
+        double rightSpeed;
 
-            // Send desired speeds to motors.
-            robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-            robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+        // determine turn power based on +/- error
+        error = getError(angle);
 
-            return onTarget;
+        if (Math.abs(error) <= HEADING_THRESHOLD) {
+            steer = 0.0;
+            leftSpeed = 0.0;
+            rightSpeed = 0.0;
+            onTarget = true;
+        } else {
+            steer = getSteer(error, PCoeff);
+            rightSpeed = speed * steer;
+            leftSpeed = -rightSpeed;
         }
 
-        /**
-         * getError determines the error between the target angle and the robot's current heading
-         * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
-         * @return error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
-         *          +ve error means the robot should turn LEFT (CCW) to reduce error.
-         */
-        public double getError ( double targetAngle){
+        // Send desired speeds to motors.
+        robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+        robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
 
-            double robotError;
+        return onTarget;
+    }
 
-            // calculate error in -179 to +180 range  (
-            robotError = targetAngle - robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-            while (robotError > 180) robotError -= 360;
-            while (robotError <= -180) robotError += 360;
-            return robotError;
-        }
+    /**
+     * getError determines the error between the target angle and the robot's current heading
+     * @param   targetAngle  Desired angle (relative to global reference established at last Gyro Reset).
+     * @return error angle: Degrees in the range +/- 180. Centered on the robot's frame of reference
+     *          +ve error means the robot should turn LEFT (CCW) to reduce error.
+     */
+    public double getError ( double targetAngle)
+    {
 
-        /**
-         * returns desired steering force.  +/- 1 range.  +ve = steer left
-         * @param error   Error angle in robot relative degrees
-         * @param PCoeff  Proportional Gain Coefficient
-         * @return
-         */
-        public double getSteer ( double error, double PCoeff){
-            return Range.clip(error * PCoeff, -1, 1);
-        }
+        double robotError;
+
+        // calculate error in -179 to +180 range  (
+        robotError = targetAngle - robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        while (robotError > 180) robotError -= 360;
+        while (robotError <= -180) robotError += 360;
+        return robotError;
+    }
+
+    /**
+     * returns desired steering force.  +/- 1 range.  +ve = steer left
+     * @param error   Error angle in robot relative degrees
+     * @param PCoeff  Proportional Gain Coefficient
+     * @return
+     */
+    public double getSteer ( double error, double PCoeff)
+    {
+        return Range.clip(error * PCoeff, -1, 1);
+    }
 
     public void encoderSideWaysDrive(double speed,
                                      double Distance,
-                                     double timeoutS) {
-        int newLeftFrontTarget;
-        int newLeftBackTarget;
-        int newRightFrontTarget;
-        int newRightBackTarget;
-
+                                     double timeoutS)
+    {
         // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-            //// Determine new target position, and pass to motor controller
-            //newLeftFrontTarget = robot.driveLeftFront.getCurrentPosition() - (int)(distance * COUNTS_PER_INCH);
-            //newLeftBackTarget = robot.driveLeftBack.getCurrentPosition() + (int)(distance * COUNTS_PER_INCH);
-            //newRightFrontTarget = robot.driveRightFront.getCurrentPosition() + (int)(distance * COUNTS_PER_INCH);
-            //newRightBackTarget = robot.driveRightBack.getCurrentPosition() - (int)(distance * COUNTS_PER_INCH);
-//
-            ////newRightTarget = robot.rightDrive.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH);
-            //robot.driveLeftFront.setTargetPosition(newLeftFrontTarget);
-            //robot.driveLeftBack.setTargetPosition(newLeftBacktTarget);
-            //robot.driveRightFront.setTargetPosition(newRightFrontTarget);
-            //robot.driveRightBack.setTargetPosition(newRightBackTarget);
-            //robot.setDriveMotorsPosition(newLeftTarget, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+        if (opModeIsActive())
+        {
             robot.setDriveMotorsPosition(Distance, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             // Turn On RUN_TO_POSITION
             robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
-            //robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            //robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            // reset the timeout time and start motion.
-            runtime.reset();
+
+            //Set Speed
             robot.setDriveMotorsPower(Math.abs(speed), HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-            //robot.leftDrive.setPower(Math.abs(speed));
-            //robot.rightDrive.setPower(Math.abs(speed));
+
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
             // its target position, the motion will stop.  This is "safer" in the event that the robot will
@@ -401,9 +384,21 @@ public abstract class AutoMain extends LinearOpMode {
             robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
             // Turn off RUN_TO_POSITION
             robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            //  sleep(250);   // optional pause after each move
-        }
         }
     }
+
+    public void turnByGyro(double speed, double angle)
+    {
+        for (int i=0; i<3;i++) {
+            gyroTurn(speed,angle);
+        }
+    }
+
+    public void driveByGyro(double speed, double Distance, double angle)
+    {
+        gyroDrive(speed, Distance, angle);
+        turnByGyro(TURN_SPEED,angle);
+    }
+}
 
 
