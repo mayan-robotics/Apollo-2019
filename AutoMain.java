@@ -387,6 +387,36 @@ public abstract class AutoMain extends LinearOpMode
         }
     }
 
+    public void encoderLift(double speed, double Distance) {
+
+        robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            robot.setLiftMotorsPosition(Distance);
+            // Turn On RUN_TO_POSITION
+            robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.lift.setPower(Math.abs(speed));
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (robot.lift.isBusy())){
+            }
+
+            // Stop all motion;
+            robot.lift.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
     public void turnByGyro(double speed, double angle)
     {
         for (int i=0; i<3;i++) {
