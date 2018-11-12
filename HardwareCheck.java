@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
  * Check robot hardware.
  */
 
-@Autonomous(name="Test: Hardware check", group="Apollo")
+@Autonomous(name="Test: Hardware check", group="Test")
 public class HardwareCheck extends AutoMain{
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
@@ -88,7 +88,11 @@ public class HardwareCheck extends AutoMain{
         telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
+        robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         waitForStart();
+
 
         telemetry.addData("X", "Encoder drive speed test");
         telemetry.addData("Y", "Encoder drive one wheel rotation");
@@ -107,13 +111,13 @@ public class HardwareCheck extends AutoMain{
                 telemetry.addData("Right Back",robot.driveRightBack.getCurrentPosition());
             }
 
-            telemetry.addData("To STOP press","right trigger");
-            telemetry.update();
 
             if (gamepad1.x)
             {
                 //Encoder drive speed test
                 telemetry.clear();
+                telemetry.addData("To STOP press","right trigger");
+                telemetry.update();
                 while (opModeIsActive() && gamepad1.right_trigger < 0.2)
                 {
                     robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -151,7 +155,7 @@ public class HardwareCheck extends AutoMain{
                 telemetry.clear();
                 while (opModeIsActive() && gamepad1.right_trigger < 0.2)
                 {
-                    gyroDrive(0.8, 500, 0);
+                    gyroDrive(0.8, 100, 0);
                 }
                 telemetry.addData("Test","Stopped");
                 telemetry.update();
@@ -186,21 +190,24 @@ public class HardwareCheck extends AutoMain{
                     robot.driveLeftFront.setPower(0.2);
                     waitSeconds(3);
                     robot.driveLeftFront.setPower(0);
+                    if(gamepad1.right_trigger < 0.2){break;}
 
                     robot.driveLeftBack.setPower(0.2);
                     waitSeconds(3);
                     robot.driveLeftBack.setPower(0);
+                    if(gamepad1.right_trigger < 0.2){break;}
 
                     robot.driveRightBack.setPower(0.2);
                     waitSeconds(3);
                     robot.driveRightBack.setPower(0);
+                    if(gamepad1.right_trigger < 0.2){break;}
 
                     robot.driveRightFront.setPower(0.2);
                     waitSeconds(3);
                     robot.driveRightFront.setPower(0);
+                    if(gamepad1.right_trigger < 0.2){break;}
                     telemetry.addData("Apollo","finished test");
                     telemetry.update();
-                    waitSeconds(1);
                     break;
                 }
                 telemetry.clear();
@@ -220,7 +227,9 @@ public class HardwareCheck extends AutoMain{
                     robot.setDriveMotorsPower(-0.2, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
                     waitSeconds(3);
                     robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                    if(gamepad1.right_trigger < 0.2){break;}
                     waitSeconds(2);
+
 
                     robot.setDriveMotorsPower(0.2, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
                     waitSeconds(3);
@@ -229,6 +238,7 @@ public class HardwareCheck extends AutoMain{
                     robot.setDriveMotorsPower(-0.2, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
                     waitSeconds(3);
                     robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                    if(gamepad1.right_trigger < 0.2){break;}
                     waitSeconds(2);
 
                     robot.setDriveMotorsPower(0.2, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
@@ -238,6 +248,7 @@ public class HardwareCheck extends AutoMain{
                     robot.setDriveMotorsPower(-0.2, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
                     waitSeconds(3);
                     robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+                    if(gamepad1.right_trigger < 0.2){break;}
                     waitSeconds(2);
 
                     robot.setDriveMotorsPower(0.2, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
@@ -247,9 +258,9 @@ public class HardwareCheck extends AutoMain{
                     robot.setDriveMotorsPower(-0.2, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
                     waitSeconds(5);
                     robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+                    if(gamepad1.right_trigger < 0.2){break;}
                     telemetry.addData("Apollo","finished test");
                     telemetry.update();
-                    waitSeconds(1);
                     break;
                 }
                 telemetry.clear();
