@@ -47,6 +47,10 @@ public abstract class AutoMain extends LinearOpMode
         MIDDLE
     }
 
+    private enum SuccessORFail {
+        SUCCESS,
+        FAIL
+    }
 
     //Init function, hardwareMap
     public void apolloInit() {
@@ -68,15 +72,16 @@ public abstract class AutoMain extends LinearOpMode
     void apolloRun(boolean isCrater)
     {
         vision.setShowCountours(true);
-        while (GetGoldLocation() != GoldPosition.MIDDLE){
-            moveToGoldMineralByCamera();
+
+        moveToGoldMineralByCamera();
+        if (moveToGoldMineralByCamera() == SuccessORFail.FAIL){
+            telemetry.addData("Vision","FAILED");
+            telemetry.update();
+        } else{
+            telemetry.addData("Vision","cube moved");
+            telemetry.update();
         }
-        waitSeconds(1);
-        while (GetGoldLocation() != GoldPosition.MIDDLE){
-            moveToGoldMineralByCamera();
-        }
-        telemetry.addData("Vision","cube moved");
-        telemetry.update();
+
 
         if(isCrater)
         {
@@ -103,18 +108,15 @@ public abstract class AutoMain extends LinearOpMode
     //Function returns the location of the gold mineral.
     public GoldPosition GetGoldLocation()
     {
-
         contoursGold.clear();
         vision.getGoldContours(contoursGold);
 
         if ((vision.goldMineralFound()) && (contoursGold != null)) {
             if (!contoursGold.isEmpty())  {
-
                 if (contoursGold.get(0) != null) {
 
                     Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
                     int goldXPosition = GoldBoundingRect.x;
-
 
                     if (goldXPosition < 450) {
                         //telemetry.addData("Gold Position", "Left");
@@ -132,9 +134,7 @@ public abstract class AutoMain extends LinearOpMode
         return null;
     }
 
-
-    public void moveToGoldMineralByCamera(){
-
+    public SuccessORFail moveToGoldMineralByCamera(){
         if(GetGoldLocation()!= null) {
             if (GetGoldLocation() == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
@@ -145,10 +145,13 @@ public abstract class AutoMain extends LinearOpMode
             else if (GetGoldLocation() == GoldPosition.MIDDLE) {
                 telemetry.addData("Drive", "Middle");
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                return SuccessORFail.SUCCESS;
             }else {
                 telemetry.addData("camera", "error");
+                return SuccessORFail.FAIL;
             }
         }
+        return null;
     }
 
 
@@ -158,7 +161,6 @@ public abstract class AutoMain extends LinearOpMode
         while (opModeIsActive() && (runtime.seconds() < seconds)) {
         }
     }
-
 
     /*
      *  Method to perfmorm a relative move, based on encoder counts.
@@ -416,6 +418,38 @@ public abstract class AutoMain extends LinearOpMode
             robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
+
+
+    public void encoderMineralSend(double speed, double Distance) {
+
+        robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            robot.setMineralSenderMotorsPosition(Distance);
+            // Turn On RUN_TO_POSITION
+            robot.mineralSend.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.mineralSend.setPower(Math.abs(speed));
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (robot.mineralSend.isBusy())){
+            }
+
+            // Stop all motion;
+            robot.mineralSend.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
 
     public void turnByGyro(double speed, double angle)
     {
