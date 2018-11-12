@@ -12,9 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Autonomous(name=" Test: Drive to gold mineral", group="Apollo")
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+
+
+
+@Autonomous(name="Test: Drive to gold mineral", group="Test")
 public class DriveToGoldMineral extends LinearOpMode {
-    HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+    HardwareCam robot = new HardwareCam(); // use Apollo's hardware
 
     private MineralVision vision;
     private List<MatOfPoint> contoursGold = new ArrayList<>();
@@ -25,27 +29,35 @@ public class DriveToGoldMineral extends LinearOpMode {
         MIDDLE
     }
 
+    static final int MineralMiddleLimitLeft = 0 ;
+    static final int MineralMiddleLimitRight = 0 ;
+
     @Override
     public void runOpMode() throws InterruptedException {
         robot.init(hardwareMap);
-        vision = new MineralVision();
-        // can replace with ActivityViewDisplay.getInstance() for fullscreen
-        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
-        vision.setShowCountours(false);
-        // start the vision system
-        vision.enable();
+        //vision = new MineralVision();
+        //// can replace with ActivityViewDisplay.getInstance() for fullscreen
+        //vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        //vision.setShowCountours(false);
+        //// start the vision system
+        //vision.enable();
 
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
 
+        /** Activate Tensor Flow Object Detection. */
+        if (robot.tfod != null) {
+            robot.tfod.activate();
+        }
+
         while (opModeIsActive())
         {
-            vision.setShowCountours(true);
-            moveToGoldMineralByCamera();
+            //vision.setShowCountours(true);
+            moveToGoldMineralByVUforia();
             telemetry.update();
         }
-        vision.disable();
+        //vision.disable();
     }
 
     //Function returns the location of the gold mineral.
@@ -79,23 +91,74 @@ public class DriveToGoldMineral extends LinearOpMode {
 
         return null;}
 
-
+/*
     public void moveToGoldMineralByCamera(){
         if(GetGoldLocation()!= null) {
             if (GetGoldLocation() == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
-                robot.setDriveMotorsPower(-0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+                //robot.setDriveMotorsPower(-0.3, HardwareCam.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             } else if (GetGoldLocation() == GoldPosition.RIGHT) {
                 telemetry.addData("Drive", "right");
-                robot.setDriveMotorsPower(0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+                //robot.setDriveMotorsPower(0.3, HardwareCam.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
             else if (GetGoldLocation() == GoldPosition.MIDDLE) {
                 telemetry.addData("Drive", "Middle");
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                //robot.setDriveMotorsPower(0, HardwareCam.DRIVE_MOTOR_TYPES.ALL);
+            }else {
+                //telemetry.addData("camera", "NO GOLD MINERAl");
+            }
+        }
+
+    }
+*/
+    public GoldPosition getVuforiaGoldMineralPosition(){
+        // getUpdatedRecognitions() will return null if no new information is available since
+        // the last time that call was made.
+        List<Recognition> updatedRecognitions = robot.tfod.getUpdatedRecognitions();
+        if (updatedRecognitions != null) {
+            telemetry.addData("# Object Detected", updatedRecognitions.size());
+            if (updatedRecognitions.size() == 3) {
+                int goldMineralX = -1;
+                int silverMineral1X = -1;
+                int silverMineral2X = -1;
+                for (Recognition recognition : updatedRecognitions) {
+                    if (recognition.getLabel().equals(robot.LABEL_GOLD_MINERAL)) {
+                        goldMineralX = (int) recognition.getLeft();
+                        if (goldMineralX < MineralMiddleLimitLeft) {
+                            telemetry.addData("Gold Position", "Left");
+                            return GoldPosition.LEFT;
+                        } else if (goldMineralX > MineralMiddleLimitRight) {
+                            telemetry.addData("Gold Position", "Right");
+                            return GoldPosition.RIGHT;
+                        } else if (goldMineralX > MineralMiddleLimitLeft && MineralMiddleLimitRight < 650) {
+                            telemetry.addData("Gold Position", "Middle");
+                            return GoldPosition.MIDDLE;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+    public void moveToGoldMineralByVUforia(){
+        if(getVuforiaGoldMineralPosition()!= null) {
+            if (getVuforiaGoldMineralPosition() == GoldPosition.LEFT) {
+                telemetry.addData("Drive", "left");
+                //robot.setDriveMotorsPower(-0.3, HardwareCam.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            } else if (getVuforiaGoldMineralPosition() == GoldPosition.RIGHT) {
+                telemetry.addData("Drive", "right");
+                //robot.setDriveMotorsPower(0.3, HardwareCam.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            }
+            else if (getVuforiaGoldMineralPosition() == GoldPosition.MIDDLE) {
+                telemetry.addData("Drive", "Middle");
+                //robot.setDriveMotorsPower(0, HardwareCam.DRIVE_MOTOR_TYPES.ALL);
             }else {
                 telemetry.addData("camera", "NO GOLD MINERAl");
             }
         }
 
     }
+
 }
