@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
  * Apollo 2019
@@ -23,6 +24,7 @@ public class HardwareApollo {
 
     public DcMotor  mineralGrab = null;
     public DcMotor  lift = null;
+    public DcMotor  mineralSend = null;
 
     public Servo    blockMineralServo = null;
     public Servo    mineralsDivider = null;
@@ -45,8 +47,8 @@ public class HardwareApollo {
     }
 
     // Encoder
-    static final double     COUNTS_PER_MOTOR_REV    = 560 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // This is < 1.0 if geared UP
+    static final double     COUNTS_PER_MOTOR_REV    = 280 ;    // PPR for NeverRest 40
+    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // Gear 2:1 , two motor cycle is to one wheel cycle
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
@@ -79,11 +81,12 @@ public class HardwareApollo {
         driveRightFront  = hwMap.get(DcMotor.class, "drf");
         driveRightBack  = hwMap.get(DcMotor.class, "drb");
 
-        mineralGrab  = hwMap.get(DcMotor.class, "m");
+        mineralGrab  = hwMap.get(DcMotor.class, "grab");
         lift  = hwMap.get(DcMotor.class, "lift");
+        mineralSend  = hwMap.get(DcMotor.class, "send");
 
         // Define and initialize ALL servos.
-        blockMineralServo  = hwMap.get(Servo.class, "bs");
+        blockMineralServo  = hwMap.get(Servo.class, "block");
         mineralsDivider  = hwMap.get(Servo.class, "md");
 
         // Define and initialize ALL sensors
@@ -92,6 +95,7 @@ public class HardwareApollo {
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
         mineralGrab.setPower(0);
         lift.setPower(0);
+        mineralSend.setPower(0);
 
         driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
@@ -120,7 +124,7 @@ public class HardwareApollo {
         // Set all motors to run without encoders.
         setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 
@@ -216,13 +220,18 @@ public class HardwareApollo {
         lift.setTargetPosition(newLift);
     }
 
+    public void setMineralSenderMotorsPosition(double ticks) {
+        int newSend;
+        newSend = mineralSend.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
+        mineralSend.setTargetPosition(newSend);
+    }
+
     //Function to set the run mode for all the drive motors.
     public void setDriveMotorsMode(DcMotor.RunMode runMode) {
         driveLeftFront.setMode(runMode);
         driveLeftBack.setMode(runMode);
         driveRightFront.setMode(runMode);
         driveRightBack.setMode(runMode);
-
     }
 
     //Function converts centimeters to inches.
