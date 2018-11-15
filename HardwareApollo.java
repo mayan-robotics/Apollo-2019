@@ -9,6 +9,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+
 /**
  * Apollo 2019
  * This class is used to define all the specific hardware for Apollo's robot.
@@ -55,12 +60,25 @@ public class HardwareApollo {
 
     // Servo mineral divider positions
     static final double dividerMiddle = 0.5;
-    static final double dividerLeft = 0.4;
-    static final double dividerRight = 0.6;
+    static final double dividerLeft = 0.45;
+    static final double dividerRight = 0.55;
 
-    //Mineral Blocker Positions
+    // Mineral Blocker Positions
     static final double block = 0;
     static final double dontBlock = 0.2;
+
+    // Gold mineral X positions limits for camera.
+    static final int MineralMiddleLimitLeft = 200 ;
+    static final int MineralMiddleLimitRight = 400 ;
+
+
+    public static final String VUFORIA_KEY = "ARCYecv/////AAABmcqxLpTXUUOPuxsa+4HIQ/GIzDMvaqWwbHZGO/Ai1kF7+COWChW41B25PqOkg6T0pwD5mJxJjStWJnIzFCHi0JyRYYqH+tscLebqWRxN7Me7udkEyQIwGw5VKxc4+gvttO/m04DvUGXEC7NjJNFtGZbbAGFBfD1UQY2vdDX1d14bIlRsHFiL9cD56NT4D0D+MACRGNnYUGs2DszENbJhIXy8uhUWeAHr3qERtEnGB0E/QoNVOxsa0G4LXl21NQhtmgYBvya9+2aC6BOjcwkEwu3XKTdYdfklbB8KNLB2+Wk6KYhTyET1YQg1+3E9asYLpnkkrZ836Y6WK7akFYds37io1yMZPRWG036tVQHfzxtD";
+    public VuforiaLocalizer vuforia;
+    public TFObjectDetector tfod;
+
+    public static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
+    public static final String LABEL_GOLD_MINERAL = "Gold Mineral";
+    public static final String LABEL_SILVER_MINERAL = "Silver Mineral";
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -72,6 +90,10 @@ public class HardwareApollo {
 
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
+        //Vuforia init
+        initVuforia();
+        initTfod();
+
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -90,6 +112,7 @@ public class HardwareApollo {
         mineralsDivider  = hwMap.get(Servo.class, "md");
 
         // Define and initialize ALL sensors
+        imu = hwMap.get(BNO055IMU.class, "imu");
 
         // Set all motors to zero power
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
@@ -118,7 +141,6 @@ public class HardwareApollo {
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
-        imu = hwMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
         // Set all motors to run without encoders.
@@ -239,5 +261,35 @@ public class HardwareApollo {
         double inch;
         inch=cm*0.393700787;
         return inch;
+    }
+
+
+    /**
+     * Initialize the Vuforia localization engine.
+     */
+    private void initVuforia() {
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         */
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraName = hwMap.get(WebcamName.class, "Webcam 1");
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
+    }
+
+    /**
+     * Initialize the Tensor Flow Object Detection engine.
+     */
+    private void initTfod() {
+        int tfodMonitorViewId = hwMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hwMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 }
