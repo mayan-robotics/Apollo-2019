@@ -72,14 +72,11 @@ public class MineralVision extends OpenCVPipeline {
     private List<MatOfPoint> contoursSilver = new ArrayList<>();
 
     // this is just here so we can expose it later thru getContours.
-    //private List<MatOfPoint> contours = new ArrayList<>();
 
     public synchronized void setShowCountours(boolean enabled) {
         showContours = enabled;
     }
-    //public synchronized List<MatOfPoint> getContours() {
-    //    return contours;
-    //}
+
     public synchronized void getGoldContours(List<MatOfPoint> newContours) {
         if (contoursOutputIsReady) {
             if (!(contoursGold.isEmpty())) {
@@ -100,9 +97,7 @@ public class MineralVision extends OpenCVPipeline {
     public synchronized boolean goldMineralFound () {
         return (findGoldMineral);
     }
-    //public synchronized boolean silverMineralFound () {
-        //return (findSilverMineral);
-    //}
+
 
     // This is called every camera frame.
     @Override
@@ -118,10 +113,6 @@ public class MineralVision extends OpenCVPipeline {
         gripGold.filterContoursOutput(contoursGold);
         contoursOutputIsReady = true;
 
-        //gripSilver.process(imageRGB);
-        //ontoursSilver = new ArrayList<>();
-        //contoursSilver = gripSilver.filterContoursOutput();
-
         if ((!(contoursGold.isEmpty())) && (showContours)) {
             Imgproc.drawContours(imageRGB, contoursGold, -1,  new Scalar(255, 210, 0), 4, 8);
             findGoldMineral = true;
@@ -129,29 +120,8 @@ public class MineralVision extends OpenCVPipeline {
             findGoldMineral = false;
         }
 
-        //if ((!(contoursSilver.isEmpty())) && (showContours)) {
-        //    Imgproc.drawContours(imageRGB, contoursSilver, -1, new Scalar(0, 230, 255), 4, 8);
-        //    findSilverMineral = true;
-        //} else {
-        //    findSilverMineral = false;
-        //}
 
         return imageRGB; // display the image seen by the camera
-    }
-
-    private void drawRectangles(Mat image, Rect[] detectedObjectRects, Scalar color, int thickness)
-    {
-        {
-            if (detectedObjectRects != null)
-            {
-                for (Rect r: detectedObjectRects)
-                {
-
-                    Imgproc.rectangle(
-                            image, new Point(r.x, r.y), new Point(r.x + r.width, r.y + r.height), color, thickness);
-                }
-            }
-        }
     }
 
 }

@@ -30,7 +30,7 @@ public class ApolloTeleop extends OpMode{
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
-        telemetry.addData("Version", "1.11.11");
+        telemetry.addData("Version", "1.11.15");
         telemetry.update();
     }
 
@@ -38,9 +38,9 @@ public class ApolloTeleop extends OpMode{
     public void loop() {
         //Controllers drive sticks inputs
         double LeftX = gamepad1.left_stick_x;
-        double LeftY = -gamepad1.left_stick_y;
+        double LeftY = -gamepad1.left_stick_y;  // The joystick goes negative when pushed forwards, so negate it.
         double RightX = gamepad1.right_stick_x;
-        double RightY = -gamepad1.right_stick_y;
+        double RightY = -gamepad1.right_stick_y;    // The joystick goes negative when pushed forwards, so negate it
         //Mineral divider By camera
         MineralDivideByVision();
 
@@ -53,13 +53,7 @@ public class ApolloTeleop extends OpMode{
         }
 
         // Drive modes control. Game pad 1, sticks.
-        if ((Math.abs(LeftX) > Math.abs(LeftY) && Math.abs(LeftX) > joyStickLimitPoints && Math.abs(LeftY)< 0.8) &&
-                (Math.abs(RightX) > Math.abs(RightY) && Math.abs(RightX)> joyStickLimitPoints && Math.abs(RightY)< 0.8 &&
-                        (RightX<0 && LeftX<0 || RightX>0 && LeftX>0 ))){
-            robot.setDriveMotorsPower(LeftX*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
-            telemetry.addData("Drive", "Side ways");
-        }
-        else if (LeftX < -joyStickLimitPoints && (Math.abs(LeftY) > joyStickLimitPoints) &&
+        if (LeftX < -joyStickLimitPoints && (Math.abs(LeftY) > joyStickLimitPoints) &&
                 (RightX < -joyStickLimitPoints && Math.abs(RightY) > joyStickLimitPoints)){
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_LEFT);
             telemetry.addData("Drive", "DIAGONAL_LEFT");
@@ -68,6 +62,12 @@ public class ApolloTeleop extends OpMode{
                 (RightX > joyStickLimitPoints && Math.abs(RightY) > joyStickLimitPoints)){
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_RIGHT);
             telemetry.addData("Drive", "DIAGONAL_RIGHT");
+        }
+        else if ((Math.abs(LeftX) > Math.abs(LeftY) && Math.abs(LeftX) > joyStickLimitPoints && Math.abs(LeftY)< 0.8) &&
+                (Math.abs(RightX) > Math.abs(RightY) && Math.abs(RightX)> joyStickLimitPoints && Math.abs(RightY)< 0.8 &&
+                        (RightX<0 && LeftX<0 || RightX>0 && LeftX>0 ))){
+            robot.setDriveMotorsPower(LeftX*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            telemetry.addData("Drive", "Side ways");
         }
         else{
             robot.setDriveMotorsPower(LeftY*speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
@@ -109,10 +109,10 @@ public class ApolloTeleop extends OpMode{
 
         //Mineral sender control. Game pad 2, right stick.
         if (Math.abs(gamepad2.right_stick_y) > 0.3) {
-            robot.mineralSend.setPower(-gamepad2.right_stick_y);
+            robot.mineralSend.setPower(0.8 * -gamepad2.right_stick_y);
         }
         else{
-            robot.mineralSend.setPower(0.01); // Run to hold still
+            robot.mineralSend.setPower(0.03); // Run to hold still
         }
 
         //Mineral blocker control. Game pad 2 bumper.
