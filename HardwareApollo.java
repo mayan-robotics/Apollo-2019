@@ -29,7 +29,8 @@ public class HardwareApollo {
 
     public DcMotor  mineralGrab = null;
     public DcMotor  lift = null;
-    public DcMotor  mineralSend = null;
+    public DcMotor  mineralSendLeft = null;
+    public DcMotor  mineralSendRight = null;
 
     public Servo    blockMineralServo = null;
     public Servo    mineralsDivider = null;
@@ -72,14 +73,6 @@ public class HardwareApollo {
     static final int MineralMiddleLimitRight = 400 ;
 
 
-    public static final String VUFORIA_KEY = "ARCYecv/////AAABmcqxLpTXUUOPuxsa+4HIQ/GIzDMvaqWwbHZGO/Ai1kF7+COWChW41B25PqOkg6T0pwD5mJxJjStWJnIzFCHi0JyRYYqH+tscLebqWRxN7Me7udkEyQIwGw5VKxc4+gvttO/m04DvUGXEC7NjJNFtGZbbAGFBfD1UQY2vdDX1d14bIlRsHFiL9cD56NT4D0D+MACRGNnYUGs2DszENbJhIXy8uhUWeAHr3qERtEnGB0E/QoNVOxsa0G4LXl21NQhtmgYBvya9+2aC6BOjcwkEwu3XKTdYdfklbB8KNLB2+Wk6KYhTyET1YQg1+3E9asYLpnkkrZ836Y6WK7akFYds37io1yMZPRWG036tVQHfzxtD";
-    public VuforiaLocalizer vuforia;
-    public TFObjectDetector tfod;
-
-    public static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
-    public static final String LABEL_GOLD_MINERAL = "Gold Mineral";
-    public static final String LABEL_SILVER_MINERAL = "Silver Mineral";
-
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
 
@@ -88,12 +81,9 @@ public class HardwareApollo {
 
     }
 
+
     /* Initialize standard Hardware interfaces */
     public void init(HardwareMap ahwMap) {
-        //Vuforia init
-        initVuforia();
-        initTfod();
-
         // Save reference to Hardware map
         hwMap = ahwMap;
 
@@ -105,7 +95,8 @@ public class HardwareApollo {
 
         mineralGrab  = hwMap.get(DcMotor.class, "grab");
         lift  = hwMap.get(DcMotor.class, "lift");
-        mineralSend  = hwMap.get(DcMotor.class, "send");
+        mineralSendLeft  = hwMap.get(DcMotor.class, "sendLeft");
+        mineralSendRight  = hwMap.get(DcMotor.class, "sendRight");
 
         // Define and initialize ALL servos.
         blockMineralServo  = hwMap.get(Servo.class, "block");
@@ -118,10 +109,13 @@ public class HardwareApollo {
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
         mineralGrab.setPower(0);
         lift.setPower(0);
-        mineralSend.setPower(0);
+        setMineralSendPower(0);
 
         driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+
+        mineralSendLeft.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+
 
         // Set all servos
         mineralsDivider.setPosition(dividerMiddle);
@@ -146,7 +140,8 @@ public class HardwareApollo {
         // Set all motors to run without encoders.
         setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        mineralSendLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        mineralSendRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 
@@ -170,10 +165,14 @@ public class HardwareApollo {
             case DIAGONAL_LEFT:
                 driveRightFront.setPower(power);
                 driveLeftBack.setPower(power);
+                driveLeftFront.setPower(0);
+                driveRightBack.setPower(0);
                 break;
             case DIAGONAL_RIGHT:
                 driveLeftFront.setPower(power);
                 driveRightBack.setPower(power);
+                driveLeftBack.setPower(0);
+                driveRightFront.setPower(0);
                 break;
             case ALL:
             default:
@@ -243,9 +242,23 @@ public class HardwareApollo {
     }
 
     public void setMineralSenderMotorsPosition(double ticks) {
-        int newSend;
-        newSend = mineralSend.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
-        mineralSend.setTargetPosition(newSend);
+        int newSendLeft;
+        int newSendRight;
+        newSendLeft = mineralSendLeft.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
+        newSendRight = mineralSendRight.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
+        mineralSendLeft.setTargetPosition(newSendLeft);
+        mineralSendRight.setTargetPosition(newSendRight);
+    }
+
+    //Function to set the power of the mineral sender motors.
+    public void setMineralSendPower(double power) {
+        mineralSendLeft.setPower(power);
+        mineralSendRight.setPower(power);
+    }
+    //Function to set the run mode for the mineral sender motors.
+    public void setMineralSendMode(DcMotor.RunMode runMode) {
+        mineralSendLeft.setMode(runMode);
+        mineralSendRight.setMode(runMode);
     }
 
     //Function to set the run mode for all the drive motors.
@@ -263,33 +276,4 @@ public class HardwareApollo {
         return inch;
     }
 
-
-    /**
-     * Initialize the Vuforia localization engine.
-     */
-    private void initVuforia() {
-        /*
-         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
-         */
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraName = hwMap.get(WebcamName.class, "Webcam 1");
-
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
-        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
-    }
-
-    /**
-     * Initialize the Tensor Flow Object Detection engine.
-     */
-    private void initTfod() {
-        int tfodMonitorViewId = hwMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hwMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
-    }
 }
