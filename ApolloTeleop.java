@@ -15,7 +15,7 @@ public class ApolloTeleop extends OpMode{
     private MineralVision vision;
 
     static double speedFactor = 1;  // Speed factor
-    static final double joyStickLimitPoints = 0.4;  // for better control
+    static final double joyStickLimitPoints = 0.3;  // for better control
 
     @Override
     public void init() {
@@ -30,7 +30,7 @@ public class ApolloTeleop extends OpMode{
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
-        telemetry.addData("Version", "1.11.15");
+        telemetry.addData("Version", "1.11.21");
         telemetry.update();
     }
 
@@ -109,10 +109,10 @@ public class ApolloTeleop extends OpMode{
 
         //Mineral sender control. Game pad 2, right stick.
         if (Math.abs(gamepad2.right_stick_y) > 0.3) {
-            robot.mineralSend.setPower(0.8 * -gamepad2.right_stick_y);
+            robot.setMineralSendPower(-gamepad2.right_stick_y);
         }
         else{
-            robot.mineralSend.setPower(0.03); // Run to hold still
+            robot.setMineralSendPower(0.03); // Run to hold still
         }
 
         //Mineral blocker control. Game pad 2 bumper.
@@ -132,9 +132,9 @@ public class ApolloTeleop extends OpMode{
     //Function divides the minerals to gold and silver with servo by camera.
     public void MineralDivideByVision(){
         if(vision.goldMineralFound()== true){
-            robot.mineralsDivider.setPosition(robot.dividerLeft);
-        }else{
             robot.mineralsDivider.setPosition(robot.dividerRight);
+        }else{
+            robot.mineralsDivider.setPosition(robot.dividerLeft);
         }
     }
 
