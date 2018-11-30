@@ -20,7 +20,6 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
  */
 
 public class HardwareApollo {
-
     /* Public OpMode members. */
     public DcMotor  driveLeftFront = null;
     public DcMotor  driveLeftBack = null;
@@ -72,6 +71,8 @@ public class HardwareApollo {
     static final int MineralMiddleLimitLeft = 200 ;
     static final int MineralMiddleLimitRight = 400 ;
 
+    static final String Version= "1.11.29" ;
+
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -92,34 +93,15 @@ public class HardwareApollo {
         driveLeftBack  = hwMap.get(DcMotor.class, "dlb");
         driveRightFront  = hwMap.get(DcMotor.class, "drf");
         driveRightBack  = hwMap.get(DcMotor.class, "drb");
-
         mineralGrab  = hwMap.get(DcMotor.class, "grab");
         lift  = hwMap.get(DcMotor.class, "lift");
         mineralSendLeft  = hwMap.get(DcMotor.class, "sendLeft");
         mineralSendRight  = hwMap.get(DcMotor.class, "sendRight");
-
         // Define and initialize ALL servos.
         blockMineralServo  = hwMap.get(Servo.class, "block");
         mineralsDivider  = hwMap.get(Servo.class, "md");
-
         // Define and initialize ALL sensors
         imu = hwMap.get(BNO055IMU.class, "imu");
-
-        // Set all motors to zero power
-        setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
-        mineralGrab.setPower(0);
-        lift.setPower(0);
-        setMineralSendPower(0);
-
-        driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
-        driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-
-        mineralSendLeft.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-
-
-        // Set all servos
-        mineralsDivider.setPosition(dividerMiddle);
-        blockMineralServo.setPosition(block);
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -137,13 +119,28 @@ public class HardwareApollo {
         // and named "imu".
         imu.initialize(parameters);
 
+        // Set all motors to zero power
+        setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
+        mineralGrab.setPower(0);
+        lift.setPower(0);
+        setMineralSendPower(0);
+
+        driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
+        driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+        mineralSendLeft.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+
+        // Set all servos
+        mineralsDivider.setPosition(dividerMiddle);
+        blockMineralServo.setPosition(block);
+
         // Set all motors to run without encoders.
+        setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         mineralSendLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         mineralSendRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
 
+    }
 
     //Function to set the power to all the drive motors.
     public void setDriveMotorsPower(double power, DRIVE_MOTOR_TYPES driverMotorType){
