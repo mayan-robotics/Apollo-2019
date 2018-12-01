@@ -29,8 +29,8 @@ public class ApolloTeleop extends OpMode{
         vision.setShowCountours(true);
 
         // Send telemetry message to signify robot waiting;
+        telemetry.addData("Version", robot.Version);
         telemetry.addData("Apollo", "Ready");
-        telemetry.addData("Version", "1.11.21");
         telemetry.update();
     }
 
@@ -84,20 +84,21 @@ public class ApolloTeleop extends OpMode{
         }
         if (gamepad2.left_trigger>0){
             telemetry.addData("main graber", "grab out");
+            telemetry.addData("power graber", gamepad2.left_trigger);
             robot.mineralGrab.setPower(-gamepad2.left_trigger);
         }
         else if (gamepad2.right_trigger>0){
             telemetry.addData("main graber", "grab in");
+            telemetry.addData("power graber", gamepad2.right_trigger);
             robot.mineralGrab.setPower(gamepad2.right_trigger);
         }else {
-            telemetry.addData("main graber", "stop");
             robot.mineralGrab.setPower(0);
         }
 
         //Mineral lift Control. Game pad 2, left stick.
         if(gamepad2.left_stick_y>0.1){
             robot.lift.setPower(1);
-            robot.mineralGrab.setPower(1);
+            //robot.mineralGrab.setPower(1);
             robot.blockMineralServo.setPosition(robot.block);
         }
         else if(gamepad2.left_stick_y<-0.1){
@@ -114,6 +115,8 @@ public class ApolloTeleop extends OpMode{
         else{
             robot.setMineralSendPower(0.03); // Run to hold still
         }
+        //telemetry.addData("Sender Encoder", robot.mineralSendLeft.getCurrentPosition());
+        //telemetry.update();
 
         //Mineral blocker control. Game pad 2 bumper.
         if (gamepad2.right_bumper) {
