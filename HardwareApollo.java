@@ -71,7 +71,7 @@ public class HardwareApollo {
     static final int MineralMiddleLimitLeft = 200 ;
     static final int MineralMiddleLimitRight = 400 ;
 
-    static final String Version= "1.11.29" ;
+    static final String Version= "1.12.1" ;
 
 
     /* local OpMode members. */
