@@ -51,13 +51,19 @@ public abstract class AutoMain extends LinearOpMode
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
 
-    static final int mineralSendPositionIn = 0 ;
-    static final int getMineralSendPositionOut = 0;
+    static final int grabMineralsAmountSecondes= 5;
+
+    static final double mineralLiftositionIn = 0 ;
+    static final double mineralLiftPositionOut = 0;
+    static final double mineralSendPositionIn = 0 ;
+    static final double mineralSendPositionOut = 0;
+
 
     static final double mineralGraberPower = 0.7;
-    private MineralVision vision;
+    private MineralVision phoneVision;
     private List<MatOfPoint> contoursGold = new ArrayList<>();
 
+    // Declaration of gold positions.
     private enum GoldPosition {
         LEFT,
         RIGHT,
@@ -77,16 +83,17 @@ public abstract class AutoMain extends LinearOpMode
         //Hardware init
         robot.init(hardwareMap);
 
-        //robot.initWebcamVuforia();
+        //Init Vuforia
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
             initTfod();
         } else {
-            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+            telemetry.addData("ERROR!", "This device is not compatible with TFOD");
         }
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
+        telemetry.addData("Version", robot.Version);
         telemetry.update();
     }
 
@@ -95,19 +102,25 @@ public abstract class AutoMain extends LinearOpMode
     {
         // Get the main position of gold mineral at start.
         getStartGoldPositins=getLocation();
+        telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
+        telemetry.update();
+        waitSeconds(2);
         // Drive until the gold mineral is in front of the robot, by camera.
-        while (opModeIsActive() && getVuforiaGoldMineralPosition()!= GoldPosition.MIDDLE ){
-            if (getVuforiaGoldMineralPosition()== null){
-                telemetry.addData("Vision","FAILED");
-                telemetry.update();
-                break;
-            }
-            moveToGoldMineralByVuforia();
-        }tfod.shutdown();
+        if (getStartGoldPositins!=GoldPosition.MIDDLE){
+                while (opModeIsActive() && getLocation() != GoldPosition.MIDDLE) {
+                    moveToGoldMineralByVuforia();
+                }
+                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+        }else {
+
+        }
+        tfod.shutdown();
+
         if (moveToGoldMineralByVuforia() == SuccessORFail.FAIL){
             telemetry.addData("Vision","FAILED");
             telemetry.update();
         } else{
+            telemetry.clearAll();
             telemetry.addData("Vision","cube moved");
             telemetry.update();
         }
@@ -124,24 +137,22 @@ public abstract class AutoMain extends LinearOpMode
         //vision.setShowCountours(true);
         if(isCrater)
         {
-            //runtime.reset();
-            //while (opModeIsActive() && (runtime.seconds() < 4)) {
-            //}
-
+            //phoneVisionOn();
         }
         else if (!isCrater)
         {
+            if(getStartGoldPositins==GoldPosition.MIDDLE){
+
+            }
 
         }
 
     }
 
-
     // Function activates the mineral grab motor to grab minerals.
     public void grabMinerals(){
-        while (opModeIsActive() && (runtime.seconds() < 5)) {
-            robot.mineralGrab.setPower(mineralGraberPower);
-        }
+        robot.mineralGrab.setPower(mineralGraberPower);
+        waitSeconds(grabMineralsAmountSecondes);
         robot.mineralGrab.setPower(0);
     }
 
@@ -157,22 +168,23 @@ public abstract class AutoMain extends LinearOpMode
     // Function drives until the gold mineral is in the middle by our camera.
     public SuccessORFail moveToGoldMineralByVuforia(){
         if(getVuforiaGoldMineralPosition()!= null) {
-            if (getVuforiaGoldMineralPosition() == GoldPosition.LEFT) {
+            telemetry.addData("Vision gold position", getVuforiaGoldMineralPosition());
+            if (getLocation() == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
                 robot.setDriveMotorsPower(-SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
-            else if (getVuforiaGoldMineralPosition() == GoldPosition.RIGHT ||
-                    getVuforiaGoldMineralPosition() == GoldPosition.OUTOFRANGE) {
+            else if (getLocation() == GoldPosition.RIGHT) {
                 telemetry.addData("Drive", "right");
                 robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
-            else if (getVuforiaGoldMineralPosition() == GoldPosition.MIDDLE)
+            else if (getLocation() == GoldPosition.MIDDLE)
             {
                 telemetry.addData("Drive", "Middle");
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
                 return SuccessORFail.SUCCESS;
             }
             else {
+                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
                 telemetry.addData("camera", "Error");
                 return SuccessORFail.FAIL;
             }
@@ -180,7 +192,8 @@ public abstract class AutoMain extends LinearOpMode
         return null;
     }
 
-    // Function returns the real location of the gold mineral compare to the silver mineral.
+    // Function converts the location of the gold mineral on the camera
+    // to the real location of the gold mineral compare to the silver minerals.
     public GoldPosition getLocation(){
         switch (getVuforiaGoldMineralPosition()){
             case LEFT:
@@ -188,6 +201,8 @@ public abstract class AutoMain extends LinearOpMode
             case RIGHT:
                 return GoldPosition.MIDDLE;
             case MIDDLE:
+                return GoldPosition.LEFT;
+            case OUTOFRANGE:
                 return GoldPosition.RIGHT;
         }
         return null;
@@ -218,26 +233,18 @@ public abstract class AutoMain extends LinearOpMode
                                     telemetry.addData("# Object Detected2", updatedRecognitions.size());
                                     telemetry.update();
                                     if (goldMineralX < robot.MineralMiddleLimitLeft) {
-                                        telemetry.addData("Gold Position", "Left");
-                                        telemetry.update();
                                         return GoldPosition.LEFT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitRight) {
-                                        telemetry.addData("Gold Position", "Right");
-                                        telemetry.update();
                                         return GoldPosition.RIGHT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitLeft && goldMineralX < robot.MineralMiddleLimitRight) {
-                                        telemetry.addData("Gold Position", "Middle");
-                                        telemetry.update();
                                         return GoldPosition.MIDDLE;
-                                    } else {
-                                        telemetry.addData("Gold Position", "Right");
-                                        telemetry.update();
-                                        return GoldPosition.OUTOFRANGE;
                                     }
                                 }
                             }
                         }
-                        telemetry.update();
+                        else {
+                            return GoldPosition.OUTOFRANGE;
+                        }
                     }
                 }
             }
@@ -247,12 +254,13 @@ public abstract class AutoMain extends LinearOpMode
 
     // Function divides the minerals to gold and silver with servo by camera.
     public void MineralDivideByVision(){
-        if(vision.goldMineralFound()== true){
+        if(phoneVision.goldMineralFound()== true){
             robot.mineralsDivider.setPosition(robot.dividerRight);
         }else{
             robot.mineralsDivider.setPosition(robot.dividerLeft);
         }
     }
+
 
     /** Drive By Gyro Functions **/
     /*
@@ -587,13 +595,13 @@ public abstract class AutoMain extends LinearOpMode
     }
 
     /** PhoneVision **/
-    public void PhoneVisionOn(){
-        vision = new MineralVision();
+    public void phoneVisionOn(){
+        phoneVision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
-        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        phoneVision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         // start the vision system
-        vision.enable();
-        vision.setShowCountours(true);
+        phoneVision.enable();
+        phoneVision.setShowCountours(true);
     }
 }
 

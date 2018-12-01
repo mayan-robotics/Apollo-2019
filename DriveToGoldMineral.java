@@ -9,6 +9,8 @@ import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
@@ -24,11 +26,13 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 @Autonomous(name="Test: Drive to gold mineral", group="Test")
 public class DriveToGoldMineral extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+    private ElapsedTime runtime = new ElapsedTime();
 
     public enum GoldPosition {
         LEFT,
         RIGHT,
-        MIDDLE
+        MIDDLE,
+        OUTOFRANGE
     }
 
     private static final String VUFORIA_KEY = "AQT2n9X/////AAABmTHqWr1WKUlSj7NxBU33qTA0HRGAoksXA9zdFamKhdujhotytdIIzsLYwMwbicUTOi41/mleQl+TD9QHEdKYY46CtD9/TnAlt0Tn4LJAujx3TqMapoGbM01NegyxhPQ3hlwehRB5tIPgJENUNbMfbKCyobKRUmxFC80UunnDcTLvyStsC8+FZUSGpQjqxpXXErSV933EAedlP0q7GXDgy9mUe3oCAMpWfU5zXSf+4sREDQzWBtuSSixhkov3eQ7+r/QH6Q5Di0SY+iQrZaZI27wem8B2i1SgAw+r3rX/LA2LjFYHQn6VePO2iVYkFt0twV/sv8KUkgByLezTnYJSqkKYEeQBODroVHcR98CB8xq9";
@@ -54,31 +58,72 @@ public class DriveToGoldMineral extends LinearOpMode {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
 
+        telemetry.addData("Version", robot.Version);
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
-        if (opModeIsActive()) {
 
-            /** Activate Tensor Flow Object Detection. */
-            if (tfod != null) {
-                tfod.activate();
-            }
+        // Get the main position of gold mineral at start.
+        telemetry.addData("Gold Mineral Position is", getLocation());
+        telemetry.update();
+        waitSeconds(2);
+        // Drive until the gold mineral is in front of the robot, by camera.
+        while (opModeIsActive() && getLocation() != GoldPosition.MIDDLE) {
+                moveToGoldMineralByVuforia();
         }
 
-        while (opModeIsActive())
-        {
-            if (opModeIsActive()) {
-                moveToGoldMineralByVUforia();
-            }
-        }
+        telemetry.addData("Vision","cube moved");
         tfod.shutdown();
 
     }
 
-    //Function returns the location of the gold mineral.
+    // Function to wait an amount of seconds.
+    public void waitSeconds(double seconds)
+    {
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < seconds)) {
+        }
+    }
+
+    // Function drives until the gold mineral is in the middle by our camera.
+    public void moveToGoldMineralByVuforia(){
+        if(getVuforiaGoldMineralPosition()!= null) {
+            telemetry.addData("Vision gold position", getVuforiaGoldMineralPosition());
+            if (getLocation() == GoldPosition.LEFT) {
+                telemetry.addData("Drive", "left");
+            }
+            else if (getLocation() == GoldPosition.RIGHT) {
+                telemetry.addData("Drive", "right");
+            }
+            else if (getLocation() == GoldPosition.MIDDLE)
+            {
+                telemetry.addData("Drive", "Middle-stop");
+            }
+            else {
+                telemetry.addData("camera", "Error");
+            }
+        }
+    }
+
+    // Function converts the location of the gold mineral on the camera
+    // to the real location of the gold mineral compare to the silver minerals.
+    public GoldPosition getLocation(){
+        switch (getVuforiaGoldMineralPosition()){
+            case LEFT:
+                return GoldPosition.LEFT;
+            case RIGHT:
+                return GoldPosition.MIDDLE;
+            case MIDDLE:
+                return GoldPosition.LEFT;
+            case OUTOFRANGE:
+                return GoldPosition.RIGHT;
+        }
+        return null;
+    }
+
+    // Function returns the location of the gold mineral compare to the camera.
     public GoldPosition getVuforiaGoldMineralPosition(){
         if (opModeIsActive()) {
-
             /** Activate Tensor Flow Object Detection. */
             if (tfod != null) {
                 tfod.activate();
@@ -99,49 +144,25 @@ public class DriveToGoldMineral extends LinearOpMode {
                                     goldMineralX = (int) recognition.getLeft();
                                     telemetry.addData("GoldX", goldMineralX);
                                     telemetry.addData("# Object Detected2", updatedRecognitions.size());
-                                    //telemetry.update();
+                                    telemetry.update();
                                     if (goldMineralX < robot.MineralMiddleLimitLeft) {
-                                        telemetry.addData("Gold Position", "Left");
-                                        //telemetry.update();
                                         return GoldPosition.LEFT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitRight) {
-                                        telemetry.addData("Gold Position", "Right");
-                                        telemetry.update();
                                         return GoldPosition.RIGHT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitLeft && goldMineralX < robot.MineralMiddleLimitRight) {
-                                        telemetry.addData("Gold Position", "Middle");
-                                        telemetry.update();
                                         return GoldPosition.MIDDLE;
                                     }
                                 }
                             }
                         }
-                        telemetry.update();
+                        else {
+                            return GoldPosition.OUTOFRANGE;
+                        }
                     }
                 }
             }
         }
         return null;
-    }
-
-    //Function drives until the gold mineral is in the middle by our camera.
-    public void moveToGoldMineralByVUforia(){
-        if(getVuforiaGoldMineralPosition()!= null) {
-            if (getVuforiaGoldMineralPosition() == GoldPosition.LEFT) {
-                telemetry.addData("Drive", "left");
-                //robot.setDriveMotorsPower(-0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
-            } else if (getVuforiaGoldMineralPosition() == GoldPosition.RIGHT) {
-                telemetry.addData("Drive", "right");
-                //robot.setDriveMotorsPower(0.3, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
-            }
-            else if (getVuforiaGoldMineralPosition() == GoldPosition.MIDDLE) {
-                telemetry.addData("Drive", "Middle");
-                //robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-            }else {
-                telemetry.addData("camera", "NO GOLD MINERAl");
-            }
-        }
-
     }
 
     /**
