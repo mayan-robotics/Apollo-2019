@@ -22,6 +22,7 @@ public class HardwareCheck extends AutoMain{
 
     @Override
     public void runOpMode() {
+        telemetry.addData("Version", robot.Version);
         telemetry.addData("ROBOT","SHOULD NOT BE ON THE GROUND");
         telemetry.update();
         waitSeconds(3);
