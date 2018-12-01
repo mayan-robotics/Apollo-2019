@@ -33,6 +33,7 @@ public class AutoColor extends LinearOpMode {
         vision.enable();
 
         // Send telemetry message to signify robot waiting;
+        telemetry.addData("Version", robot.Version);
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         // Wait for the game to start (driver presses PLAY)
@@ -45,11 +46,11 @@ public class AutoColor extends LinearOpMode {
 
             if(vision.goldMineralFound()== true){
                 telemetry.addData("Apollo","found a gold mineral");
-                robot.mineralsDivider.setPosition(dividerLeft);
+                robot.mineralsDivider.setPosition(dividerRight);
                 waitSeconds(0.1);
             }else{
                 telemetry.addData("Apollo"," did not found a gold mineral");
-                robot.mineralsDivider.setPosition(dividerRight);
+                robot.mineralsDivider.setPosition(dividerLeft);
             }
             telemetry.update();
         }
