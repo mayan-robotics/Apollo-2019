@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 
@@ -14,13 +16,24 @@ public class ApolloTeleop extends OpMode{
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private MineralVision vision;
 
+    private ElapsedTime runtime = new ElapsedTime();
+
     static double speedFactor = 1;  // Speed factor
-    static final double joyStickLimitPoints = 0.3;  // for better control
+    static final double joyStickLimitPoints = 0.3;  // For better control
+    static final double senderOpenLimitPoint = -7500 ; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final double senderCloseLimitPoint = 0 ; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final double convertJoystickToPosition = 10 ; //
+    int mineralSenderPosition ; // Encoder positions
+    int mineralSenderWantedPosition  = 0 ; // Encoder positions
+
 
     @Override
     public void init() {
         //Hardware init
         robot.init(hardwareMap);
+        robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        telemetry.addData("here", "Ready");
+        //Vision
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
@@ -44,8 +57,17 @@ public class ApolloTeleop extends OpMode{
         //Mineral divider By camera
         MineralDivideByVision();
 
+        if(gamepad1.dpad_up){
+            if(speedFactor<1) {
+                speedFactor++;
+            }
+        }else if(gamepad1.dpad_down){
+            if (speedFactor>0){
+                speedFactor--;
+            }
+        }
         //Drive speed control. Game pad 1, stick buttons.
-        if (gamepad1.right_stick_button && gamepad1.left_stick_button){
+        if (gamepad1.right_stick_button || gamepad1.left_stick_button){
             speedFactor = 0.5;  // Decrease drive speed
         }
         else{
@@ -109,19 +131,38 @@ public class ApolloTeleop extends OpMode{
         }
 
         //Mineral sender control. Game pad 2, right stick.
-        if (Math.abs(gamepad2.right_stick_y) > 0.3) {
-            robot.setMineralSendPower(-gamepad2.right_stick_y);
+        if (Math.abs(gamepad2.right_stick_y) > 0.03) {
+            robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if(-gamepad2.right_stick_y > 0 && mineralSenderPosition >= senderOpenLimitPoint) {
+                robot.setMineralSendPower(-gamepad2.right_stick_y);
+                mineralSenderWantedPosition = robot.mineralSendRight.getCurrentPosition();
+                telemetry.addData("tese", "here");
+            }else if(-gamepad2.right_stick_y < 0 && mineralSenderPosition <= senderCloseLimitPoint ){
+                robot.setMineralSendPower(-gamepad2.right_stick_y);
+                mineralSenderWantedPosition = robot.mineralSendRight.getCurrentPosition();
+                telemetry.addData("tese", "here");
+            }
+            else {
+                robot.setMineralSendPower(0); // Run to hold still
+                telemetry.addData("stop", "1");
+            }
         }
         else{
-            robot.setMineralSendPower(0.03); // Run to hold still
+            robot.setMineralSendPower(0); // Run to hold still
+            telemetry.addData("stop2", "2");
+
         }
-        //telemetry.addData("Sender Encoder", robot.mineralSendLeft.getCurrentPosition());
-        //telemetry.update();
+        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+
+        telemetry.addData("Sender Encoder left", robot.mineralSendLeft.getCurrentPosition());
+        telemetry.addData("Sender Encoder right", robot.mineralSendRight.getCurrentPosition());
+        telemetry.addData("Sender position", mineralSenderPosition);
+        telemetry.update();
 
         //Mineral blocker control. Game pad 2 bumper.
         if (gamepad2.right_bumper) {
             robot.blockMineralServo.setPosition(robot.block);
-        } else if (gamepad2.right_bumper) {
+        } else if (gamepad2.left_bumper) {
             robot.blockMineralServo.setPosition(robot.dontBlock);
         }
 
@@ -140,5 +181,6 @@ public class ApolloTeleop extends OpMode{
             robot.mineralsDivider.setPosition(robot.dividerLeft);
         }
     }
+
 
 }
