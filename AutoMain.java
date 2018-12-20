@@ -44,7 +44,7 @@ public abstract class AutoMain extends LinearOpMode
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.5;     // Nominal half speed for better accuracy.
-    static final double SIDE_WAYS_DRIVE_SPEED = 0.5;     // Nominal speed for better accuracy.
+    static final double SIDE_WAYS_DRIVE_SPEED = 0.3;     // Nominal speed for better accuracy.
 
 
     static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
@@ -55,8 +55,18 @@ public abstract class AutoMain extends LinearOpMode
 
     static final double mineralLiftositionIn = 0 ;
     static final double mineralLiftPositionOut = 0;
-    static final double mineralSendPositionIn = 0 ;
-    static final double mineralSendPositionOut = 0;
+    static final int mineralSendPositionIn = 0 ;
+    static final int mineralSendPositionOut = -5000;
+
+    static final double senderOpenLimitPoint = -4500 ; // Limit so the sender motors wont open to much, by encoder ticks.
+
+    int mineralSenderWantedPosition  = 0 ; // Encoder positions
+
+
+    int distenceForGoldMineral  = 80 ; // Encoder positions
+
+
+    //int MineralLimitY = 550;
 
 
     static final double mineralGraberPower = 0.7;
@@ -82,6 +92,8 @@ public abstract class AutoMain extends LinearOpMode
     public void apolloInit() {
         //Hardware init
         robot.init(hardwareMap);
+        robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //Init Vuforia
         initVuforia();
@@ -101,29 +113,43 @@ public abstract class AutoMain extends LinearOpMode
     void apolloRun(boolean isCrater)
     {
         // Get the main position of gold mineral at start.
+        //waitSeconds(2);
+        telemetry.addData("here", "2");
+        getStartGoldPositins=getLocation();
+        telemetry.addData("here", "1");
+        waitSeconds(2);
         getStartGoldPositins=getLocation();
         telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
         telemetry.update();
         waitSeconds(2);
-        // Drive until the gold mineral is in front of the robot, by camera.
-        if (getStartGoldPositins!=GoldPosition.MIDDLE){
-                while (opModeIsActive() && getLocation() != GoldPosition.MIDDLE) {
-                    moveToGoldMineralByVuforia();
-                }
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-        }else {
 
+        driveByGyro(0.3,40,0);
+        waitSeconds(1);
+
+
+       switch (getStartGoldPositins){
+            case LEFT:
+             encoderSideWaysDrive(0.8,distenceForGoldMineral);
+
+                break;
+            case RIGHT:
+               encoderSideWaysDrive(0.8,-distenceForGoldMineral);
+
+                break;
+            case MIDDLE:
+
+                break;
         }
+
+        gyroTurn(0.6,-43);
+
+        driveByGyro(1,-90,47);
+        //encoderMineralSend(0.2, mineralSendPositionOut);
+
         tfod.shutdown();
 
-        if (moveToGoldMineralByVuforia() == SuccessORFail.FAIL){
-            telemetry.addData("Vision","FAILED");
-            telemetry.update();
-        } else{
-            telemetry.clearAll();
-            telemetry.addData("Vision","cube moved");
-            telemetry.update();
-        }
+        //encoderMineralSend(0.2, mineralSendPositionOut);
+
 
         //switch (getStartGoldPositins){
         //    case LEFT:
@@ -141,8 +167,8 @@ public abstract class AutoMain extends LinearOpMode
         }
         else if (!isCrater)
         {
-            if(getStartGoldPositins==GoldPosition.MIDDLE){
-
+            if(getStartGoldPositins==GoldPosition.MIDDLE)
+            {
             }
 
         }
@@ -166,18 +192,18 @@ public abstract class AutoMain extends LinearOpMode
     }
 
     // Function drives until the gold mineral is in the middle by our camera.
-    public SuccessORFail moveToGoldMineralByVuforia(){
+    public SuccessORFail moveToGoldMineralByVuforia( GoldPosition useGoldPositions){
         if(getVuforiaGoldMineralPosition()!= null) {
             telemetry.addData("Vision gold position", getVuforiaGoldMineralPosition());
-            if (getLocation() == GoldPosition.LEFT) {
+            if (useGoldPositions == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
                 robot.setDriveMotorsPower(-SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
-            else if (getLocation() == GoldPosition.RIGHT) {
+            else if (useGoldPositions == GoldPosition.RIGHT) {
                 telemetry.addData("Drive", "right");
                 robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
             }
-            else if (getLocation() == GoldPosition.MIDDLE)
+            else if (useGoldPositions == GoldPosition.MIDDLE)
             {
                 telemetry.addData("Drive", "Middle");
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
@@ -226,29 +252,40 @@ public abstract class AutoMain extends LinearOpMode
                         telemetry.addData("# Object Detected", updatedRecognitions.size());
                         if (updatedRecognitions.size() >= 1) {
                             int goldMineralX;
+                            int goldMineralY;
                             for (Recognition recognition : updatedRecognitions) {
                                 if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                     goldMineralX = (int) recognition.getLeft();
+                                    goldMineralY = (int) recognition.getBottom();
                                     telemetry.addData("GoldX", goldMineralX);
+                                    telemetry.addData("GoldY", goldMineralY);
                                     telemetry.addData("# Object Detected2", updatedRecognitions.size());
                                     telemetry.update();
+                                    //if(goldMineralY<robot.MineralLimitY) {
                                     if (goldMineralX < robot.MineralMiddleLimitLeft) {
                                         return GoldPosition.LEFT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitRight) {
                                         return GoldPosition.RIGHT;
                                     } else if (goldMineralX > robot.MineralMiddleLimitLeft && goldMineralX < robot.MineralMiddleLimitRight) {
                                         return GoldPosition.MIDDLE;
+                                    } else {
+                                        return GoldPosition.OUTOFRANGE;
                                     }
+                                    //}
+                                } else {
+                                    return GoldPosition.OUTOFRANGE;
                                 }
                             }
+                        } else {
+                            return GoldPosition.OUTOFRANGE;
                         }
-                        else {
+                    }else {
                             return GoldPosition.OUTOFRANGE;
                         }
                     }
                 }
             }
-        }
+
         return null;
     }
 
@@ -348,7 +385,7 @@ public abstract class AutoMain extends LinearOpMode
      *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                   If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroTurn ( double speed, double angle)
+    public void gyroTurn (double speed, double angle)
     {
 
         // keep looping while we are still active, and not on heading.
@@ -472,8 +509,7 @@ public abstract class AutoMain extends LinearOpMode
 
     // Drive side ways by encoder function.
     public void encoderSideWaysDrive(double speed,
-                                     double Distance,
-                                     double timeoutS)
+                                     double Distance)
     {
         // Ensure that the opmode is still active
         if (opModeIsActive())
@@ -492,7 +528,6 @@ public abstract class AutoMain extends LinearOpMode
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
                     (robot.driveLeftFront.isBusy()
                             && robot.driveLeftBack.isBusy()
                             && robot.driveRightFront.isBusy()
@@ -536,38 +571,78 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
-    public void encoderMineralSend(double speed, double Distance) {
+    public void encoderMineralSend(double speed, int Position) {
+        //robot.mineralSendRight.setTargetPosition(mineralSenderWantedPosition);
+        //robot.mineralSendLeft.setTargetPosition(mineralSenderWantedPosition);
+        //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+        int mineralSenderPosition;
 
-        robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+
+        //robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //if(-gamepad2.right_stick_y > 0 && mineralSenderPosition >= senderOpenLimitPoint) {
+        //    robot.setMineralSendPower(-gamepad2.right_stick_y);
+        //    mineralSenderWantedPosition = robot.mineralSendRight.getCurrentPosition();
+        //    telemetry.addData("tese", "here");
+        //}
         // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-            robot.setMineralSenderMotorsPosition(Distance);
-            // Turn On RUN_TO_POSITION
-            robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+        for (int i=0; i<2; i++) {
+            if (opModeIsActive()) {
+                mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
 
-            // reset the timeout time and start motion.
-            runtime.reset();
-            robot.setMineralSendPower(Math.abs(speed));
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                    (robot.mineralSendLeft.isBusy() && robot.mineralSendRight.isBusy())){
+
+                //robot.mineralSendRight.setTargetPosition(Position);
+                //robot.mineralSendLeft.setTargetPosition(Position);
+
+
+                // Turn On RUN_TO_POSITION
+                //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                // reset the timeout time and start motion.
+                runtime.reset();
+                //robot.setMineralSendPower(speed);
+                //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+                // keep looping while we are still active, and there is time left, and both motors are running.
+                // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+                // its target position, the motion will stop.  This is "safer" in the event that the robot will
+                // always end the motion as soon as possible.
+                // However, if you require that BOTH motors have finished their moves before the robot continues
+                // onto the next step, use (isBusy() || isBusy()) in the loop test.
+
+                if (mineralSenderPosition >= Position) {
+                    while (opModeIsActive() && mineralSenderPosition >= Position) {
+                        robot.setMineralSendPower(speed);
+                        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+
+                        telemetry.addData("sender left", robot.mineralSendLeft.getCurrentPosition());
+                        telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
+                        telemetry.update();
+                    }
+                } else if (mineralSenderPosition <= Position) {
+                    while (opModeIsActive() && mineralSenderPosition <= Position) {
+                        robot.setMineralSendPower(-speed);
+                        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+
+                        telemetry.addData("sender left", robot.mineralSendLeft.getCurrentPosition());
+                        telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
+                        telemetry.update();
+                    }
+                }
+
+                // Stop all motion;
+                robot.setMineralSendPower(0);
+
+                // Turn off RUN_TO_POSITION
+                robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
-
-            // Stop all motion;
-            robot.setMineralSendPower(0);
-
-            // Turn off RUN_TO_POSITION
-            robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
 
-    /** Initialize the Vuforia localization engine. **/
+    /**
+     * Initialize the Vuforia localization engine.
+     */
     private void initVuforia() {
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
@@ -575,7 +650,7 @@ public abstract class AutoMain extends LinearOpMode
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam");
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
