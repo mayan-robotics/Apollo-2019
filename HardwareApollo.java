@@ -70,8 +70,9 @@ public class HardwareApollo {
     // Gold mineral X positions limits for camera.
     static final int MineralMiddleLimitLeft = 200 ;
     static final int MineralMiddleLimitRight = 400 ;
+    static final int MineralLimitY = 40 ;
 
-    static final String Version= "1.12.1" ;
+    static final String Version= "1.12.20" ;
 
 
     /* local OpMode members. */
@@ -129,17 +130,21 @@ public class HardwareApollo {
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
         mineralSendLeft.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
+
+
         // Set all servos
         mineralsDivider.setPosition(dividerMiddle);
         blockMineralServo.setPosition(block);
 
         // Set all motors to run without encoders.
         setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setMineralSendMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        setMineralSendMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         mineralSendLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         mineralSendRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
     }
 
     //Function to set the power to all the drive motors.
@@ -206,10 +211,11 @@ public class HardwareApollo {
                 driveRightBack.setTargetPosition(newRightBackTarget);
                 break;
             case SIDE_WAYS:
-                newLeftFrontTarget = driveLeftFront.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
-                newLeftBackTarget = driveLeftBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
-                newRightFrontTarget = driveRightFront.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
+
+                newLeftBackTarget = driveLeftBack.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
+                newLeftFrontTarget = driveLeftFront.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
                 newRightBackTarget = driveRightBack.getCurrentPosition() + (int)(inch*COUNTS_PER_INCH);
+                newRightFrontTarget = driveRightFront.getCurrentPosition() - (int)(inch*COUNTS_PER_INCH);
 
                 driveLeftBack.setTargetPosition(newLeftFrontTarget);
                 driveLeftFront.setTargetPosition(newLeftBackTarget);
