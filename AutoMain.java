@@ -44,19 +44,20 @@ public abstract class AutoMain extends LinearOpMode
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.5;     // Nominal half speed for better accuracy.
-    static final double SIDE_WAYS_DRIVE_SPEED = 0.3;     // Nominal speed for better accuracy.
+    static final double SIDE_WAYS_DRIVE_SPEED = 0.8;     // Nominal speed for better accuracy.
 
 
     static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
-    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
+    static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.05;     // Larger is more responsive, but also less stable
 
-    static final int grabMineralsAmountSecondes= 5;
+    static final int grabMineralsAmountSecondes= 3;
 
-    static final double mineralLiftositionIn = 0 ;
-    static final double mineralLiftPositionOut = 0;
-    static final int mineralSendPositionIn = 0 ;
-    static final int mineralSendPositionOut = -5000;
+
+    static final int liftOpen = 1900;
+
+    static final int liftClose = -2200;
+
 
     static final double senderOpenLimitPoint = -4500 ; // Limit so the sender motors wont open to much, by encoder ticks.
 
@@ -64,13 +65,14 @@ public abstract class AutoMain extends LinearOpMode
 
 
     int distenceForGoldMineral  = 80 ; // Encoder positions
+    int gyroDegrees = 0;
 
 
     //int MineralLimitY = 550;
 
 
-    static final double mineralGraberPower = 0.7;
-    private MineralVision phoneVision;
+    static final double mineralGraberPower = 1;
+    private MineralVision vision;
     private List<MatOfPoint> contoursGold = new ArrayList<>();
 
     // Declaration of gold positions.
@@ -93,7 +95,7 @@ public abstract class AutoMain extends LinearOpMode
         //Hardware init
         robot.init(hardwareMap);
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //Init Vuforia
         initVuforia();
@@ -112,74 +114,217 @@ public abstract class AutoMain extends LinearOpMode
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
-        // Get the main position of gold mineral at start.
-        //waitSeconds(2);
-        telemetry.addData("here", "2");
-        getStartGoldPositins=getLocation();
-        telemetry.addData("here", "1");
-        waitSeconds(2);
-        getStartGoldPositins=getLocation();
-        telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
-        telemetry.update();
-        waitSeconds(2);
+        climb();
 
-        driveByGyro(0.3,40,0);
+        waitSeconds(999);
+        // Get the main position of gold mineral at start.
+        getStartGoldPositins=getLocation(GetGoldLocation());
+        waitSeconds(2);
+        //while (opModeIsActive()) {
+            //getVuforiaGoldMineralPosition();
+
+            getStartGoldPositins = getLocation(GetGoldLocation());
+            telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
+            telemetry.update();
+
         waitSeconds(1);
 
+        encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -30);
+        //waitSeconds(5);
+
+        gyroTurn(TURN_SPEED,angelForGyro(90));
+        waitSeconds(0.2);
+        gyroTurn(TURN_SPEED,angelForGyro(0));
+
+        //robot.imuRestart();
+        //waitSeconds(1);
+        //robot.init(hardwareMap);
+        //robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //waitSeconds(1);
+
+        //gyroDegrees = 0;
+
+        driveByGyro(0.3,-5 ,angelForGyro(0));
 
        switch (getStartGoldPositins){
             case LEFT:
-             encoderSideWaysDrive(0.8,distenceForGoldMineral);
-
+                driveByGyro(0.3,40,angelForGyro(0));
+                encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -88);
+                //driveByGyro(0.3,-20,angelForGyro(0));
                 break;
             case RIGHT:
-               encoderSideWaysDrive(0.8,-distenceForGoldMineral);
-
-                break;
-            case MIDDLE:
-
-                break;
+                driveByGyro(0.3,40,angelForGyro(0));
+                encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, distenceForGoldMineral);
+                //driveByGyro(0.3,-20,angelForGyro(0));
+               break;
         }
 
-        gyroTurn(0.6,-43);
 
-        driveByGyro(1,-90,47);
-        //encoderMineralSend(0.2, mineralSendPositionOut);
-
-        tfod.shutdown();
-
-        //encoderMineralSend(0.2, mineralSendPositionOut);
+        waitSeconds(1);
 
 
-        //switch (getStartGoldPositins){
-        //    case LEFT:
-        //
-        //        break;
-        //    case RIGHT:
-        //
-        //        break;
-        //}
 
-        //vision.setShowCountours(true);
+        /** If Crater **/
         if(isCrater)
         {
-            //phoneVisionOn();
-        }
-        else if (!isCrater)
-        {
-            if(getStartGoldPositins==GoldPosition.MIDDLE)
-            {
+
+            switch (getStartGoldPositins){
+                case LEFT:
+
+                    driveByGyro(0.3,50, angelForGyro(0));
+
+                    waitSeconds(1);
+                    robot.init(hardwareMap);
+                    robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    waitSeconds(1);
+                    gyroDegrees = 0;
+
+                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -35);
+
+                    driveByGyro(DRIVE_SPEED,40,angelForGyro(0));
+
+                    break;
+                case RIGHT:
+
+                    driveByGyro(0.3,30, angelForGyro(0));
+
+                    waitSeconds(1);
+                    robot.init(hardwareMap);
+                    robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    waitSeconds(1);
+                    gyroDegrees = 0;
+
+                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, 30);
+                    driveByGyro(DRIVE_SPEED,30,angelForGyro(0));
+
+                    //driveByGyro(DRIVE_SPEED,215,angelForGyro(0));
+
+                    break;
+                case MIDDLE:
+                    encoderLift(0.5,liftOpen);
+                    //waitSeconds(2);
+                    driveByGyro(0.5,20, angelForGyro(0));
+                    grabMinerals(-1);
+                    waitSeconds(2);
+                    encoderLift(0.5 , liftClose);
+
+                    robot.lift.setPower(0.01);
+
+
+                    waitSeconds(1);
+                    driveByGyro(1,80, angelForGyro(0));
+
+                    //driveByGyro(-DRIVE_SPEED,-30, angelForGyro(0));
+                    //gyroTurn(TURN_SPEED,angelForGyro(90));
+                    //driveByGyro(DRIVE_SPEED,135,angelForGyro(0));
+
+                    break;
             }
+            encoderLift(0.5,liftOpen);
+            grabMinerals(-1);
+            waitSeconds(2);
+            //gyroTurn(TURN_SPEED,angelForGyro(-133));
+            //driveByGyro(1,-80,angelForGyro(0));
+
+            //encoderMineralSend(-1, mineralSendPositionOut);
+            //waitSeconds(3);
+            //encoderMineralSend(1, mineralSendPositionIn);
+
 
         }
+        /** If Depot **/
+        else if (!isCrater)
+        {
+            //driveByGyro(1,55, angelForGyro(0));
+            //waitSeconds(5);
+
+            switch (getStartGoldPositins){
+                case LEFT:
+                    encoderLift(0.5,liftOpen);
+                    driveByGyro(0.5,20, angelForGyro(0));
+
+                    robot.setMineralGrabServos(-1);
+
+
+                    driveByGyro(0.5,40, angelForGyro(0));
+                    robot.setMineralGrabServos(0);
+
+
+                    driveByGyro(1,55, angelForGyro(0));
+
+                    gyroTurn(TURN_SPEED,angelForGyro(-20));
+
+                    robot.setMineralGrabServos(1);
+                    waitSeconds(2);
+                    robot.setMineralGrabServos(0);
+
+
+                    break;
+                case RIGHT:
+                    //encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED,distenceForGoldMineral);
+                    driveByGyro(0.5,-45, angelForGyro(0));
+
+                    encoderLift(0.5,liftOpen);
+
+                    robot.setMineralGrabServos(-1);
+
+
+                    driveByGyro(0.5,40, angelForGyro(0));
+                    robot.setMineralGrabServos(0);
+
+
+                    driveByGyro(1,60, angelForGyro(0));
+
+                    gyroTurn(TURN_SPEED,angelForGyro(20));
+
+                    robot.setMineralGrabServos(-1);
+                    waitSeconds(2);
+                    robot.setMineralGrabServos(0);
+
+                    break;
+                case MIDDLE:
+                    encoderLift(0.5,liftOpen);
+                    //waitSeconds(2);
+                    driveByGyro(0.5,20, angelForGyro(0));
+                    //grabMinerals(-1);
+                    //waitSeconds(2);
+                    //encoderLift(0.5 , liftClose);
+
+                    robot.setMineralGrabServos(1);
+
+
+                    driveByGyro(0.5,40, angelForGyro(0));
+                    robot.setMineralGrabServos(0);
+                    encoderLift(0.5 , liftClose);
+                    //robot.lift.setPower(0.01);
+
+                    driveByGyro(1,70, angelForGyro(0));
+                    robot.setMineralGrabServos(0);
+
+                    break;
+
+            }
+
+
+        }
+        tfod.shutdown();
 
     }
 
+    // Function will be used to keep track of the gyro positions.
+    public int angelForGyro(int degreesWanted){
+        gyroDegrees=gyroDegrees+degreesWanted;
+        return gyroDegrees;
+    }
+
     // Function activates the mineral grab motor to grab minerals.
-    public void grabMinerals(){
-        robot.mineralGrab.setPower(mineralGraberPower);
+    public void grabMinerals(double speed){
+        robot.setMineralGrabServos(speed);
         waitSeconds(grabMineralsAmountSecondes);
-        robot.mineralGrab.setPower(0);
+        robot.setMineralGrabServos(0);
     }
 
 
@@ -193,8 +338,8 @@ public abstract class AutoMain extends LinearOpMode
 
     // Function drives until the gold mineral is in the middle by our camera.
     public SuccessORFail moveToGoldMineralByVuforia( GoldPosition useGoldPositions){
-        if(getVuforiaGoldMineralPosition()!= null) {
-            telemetry.addData("Vision gold position", getVuforiaGoldMineralPosition());
+        if(GetGoldLocation()!= null) {
+            telemetry.addData("Vision gold position", GetGoldLocation());
             if (useGoldPositions == GoldPosition.LEFT) {
                 telemetry.addData("Drive", "left");
                 robot.setDriveMotorsPower(-SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
@@ -220,8 +365,8 @@ public abstract class AutoMain extends LinearOpMode
 
     // Function converts the location of the gold mineral on the camera
     // to the real location of the gold mineral compare to the silver minerals.
-    public GoldPosition getLocation(){
-        switch (getVuforiaGoldMineralPosition()){
+    public GoldPosition getLocation(GoldPosition vision){
+        switch ((vision)){
             case LEFT:
                 return GoldPosition.LEFT;
             case RIGHT:
@@ -234,69 +379,51 @@ public abstract class AutoMain extends LinearOpMode
         return null;
     }
 
-    // Function returns the location of the gold mineral compare to the camera.
-    public GoldPosition getVuforiaGoldMineralPosition(){
-        if (opModeIsActive()) {
-            /** Activate Tensor Flow Object Detection. */
-            if (tfod != null) {
-                tfod.activate();
-            }
-        }
-        if (tfod != null) {
-            if (opModeIsActive()) {
-                while (opModeIsActive()) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        if (updatedRecognitions.size() >= 1) {
-                            int goldMineralX;
-                            int goldMineralY;
-                            for (Recognition recognition : updatedRecognitions) {
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                    goldMineralX = (int) recognition.getLeft();
-                                    goldMineralY = (int) recognition.getBottom();
-                                    telemetry.addData("GoldX", goldMineralX);
-                                    telemetry.addData("GoldY", goldMineralY);
-                                    telemetry.addData("# Object Detected2", updatedRecognitions.size());
-                                    telemetry.update();
-                                    //if(goldMineralY<robot.MineralLimitY) {
-                                    if (goldMineralX < robot.MineralMiddleLimitLeft) {
-                                        return GoldPosition.LEFT;
-                                    } else if (goldMineralX > robot.MineralMiddleLimitRight) {
-                                        return GoldPosition.RIGHT;
-                                    } else if (goldMineralX > robot.MineralMiddleLimitLeft && goldMineralX < robot.MineralMiddleLimitRight) {
-                                        return GoldPosition.MIDDLE;
-                                    } else {
-                                        return GoldPosition.OUTOFRANGE;
-                                    }
-                                    //}
-                                } else {
-                                    return GoldPosition.OUTOFRANGE;
-                                }
-                            }
-                        } else {
-                            return GoldPosition.OUTOFRANGE;
-                        }
-                    }else {
-                            return GoldPosition.OUTOFRANGE;
+    //Function returns the location of the gold mineral.
+    public GoldPosition GetGoldLocation(){
+        try {
+            List<MatOfPoint> contoursGold = new ArrayList<>();
+            vision.setShowCountours(true);
+
+            contoursGold.clear();
+            vision.getGoldContours(contoursGold);
+
+
+            if ((vision.goldMineralFound() == true) && (contoursGold != null)) {
+                if (!contoursGold.isEmpty()) {
+                    if (contoursGold.size() >= 1) {
+                        if (Imgproc.boundingRect(contoursGold.get(0)) != null) {
+                            Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
+                            //int goldXPosition = GoldBoundingRect.x;
+                            int goldYPosition = GoldBoundingRect.y;
+
+                            //telemetry.addData("Gold Position X", goldXPosition);
+                            telemetry.addData("Gold Position Y", goldYPosition);
+
+                            if (goldYPosition < 300) {
+                                telemetry.addData("Gold Position", "Left");
+                                return GoldPosition.LEFT;
+                            } else if (goldYPosition > 300) {
+                                telemetry.addData("Gold Position", "Right");
+                                return GoldPosition.RIGHT;
+                            } //else if (goldYPosition > 450 && goldYPosition < 650) {
+                            //  telemetry.addData("Gold Position", "Middle");
+                            //  return GoldPosition.MIDDLE;
+                            //}
                         }
                     }
                 }
+            } else {
+                telemetry.addData("Apollo", "did not find a gold mineral");
+                return GoldPosition.OUTOFRANGE;
             }
-
-        return null;
-    }
-
-    // Function divides the minerals to gold and silver with servo by camera.
-    public void MineralDivideByVision(){
-        if(phoneVision.goldMineralFound()== true){
-            robot.mineralsDivider.setPosition(robot.dividerRight);
-        }else{
-            robot.mineralsDivider.setPosition(robot.dividerLeft);
+        }catch (Exception e){
+            telemetry.addData("Vision", "Error");
+            telemetry.update();
+            return GoldPosition.OUTOFRANGE;
         }
-    }
+
+        return null;}
 
 
     /** Drive By Gyro Functions **/
@@ -511,6 +638,9 @@ public abstract class AutoMain extends LinearOpMode
     public void encoderSideWaysDrive(double speed,
                                      double Distance)
     {
+        robot.setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // Ensure that the opmode is still active
         if (opModeIsActive())
         {
@@ -570,39 +700,62 @@ public abstract class AutoMain extends LinearOpMode
         }
     }
 
+    public void climb(){
+        while (robot.climbMotor.getCurrentPosition() < 53700) {
+            robot.climbMotor.setPower(1);
+
+            getStartGoldPositins = getLocation(GetGoldLocation());
+            telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
+            telemetry.update();
+        }
+        robot.climbMotor.setPower(0);
+    }
+
+    public void encoderClimb(double speed, double Distance) {
+
+        robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            robot.setLiftMotorsPosition(Distance);
+            // Turn On RUN_TO_POSITION
+            robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.climbMotor.setPower(Math.abs(speed));
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (robot.climbMotor.isBusy())){
+            }
+
+            // Stop all motion;
+            robot.climbMotor.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
 
     public void encoderMineralSend(double speed, int Position) {
-        //robot.mineralSendRight.setTargetPosition(mineralSenderWantedPosition);
-        //robot.mineralSendLeft.setTargetPosition(mineralSenderWantedPosition);
-        //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         int mineralSenderPosition;
 
+        mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
-        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
-
-        //robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //if(-gamepad2.right_stick_y > 0 && mineralSenderPosition >= senderOpenLimitPoint) {
-        //    robot.setMineralSendPower(-gamepad2.right_stick_y);
-        //    mineralSenderWantedPosition = robot.mineralSendRight.getCurrentPosition();
-        //    telemetry.addData("tese", "here");
-        //}
         // Ensure that the opmode is still active
         for (int i=0; i<2; i++) {
             if (opModeIsActive()) {
-                mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
-
-
-                //robot.mineralSendRight.setTargetPosition(Position);
-                //robot.mineralSendLeft.setTargetPosition(Position);
-
-
-                // Turn On RUN_TO_POSITION
-                //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+                mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
                 // reset the timeout time and start motion.
                 runtime.reset();
-                //robot.setMineralSendPower(speed);
-                //robot.setMineralSendMode(DcMotor.RunMode.RUN_TO_POSITION);
+
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
                 // its target position, the motion will stop.  This is "safer" in the event that the robot will
@@ -612,29 +765,29 @@ public abstract class AutoMain extends LinearOpMode
 
                 if (mineralSenderPosition >= Position) {
                     while (opModeIsActive() && mineralSenderPosition >= Position) {
-                        robot.setMineralSendPower(speed);
-                        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+                        robot.mineralSend.setPower(speed);
+                        mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
-                        telemetry.addData("sender left", robot.mineralSendLeft.getCurrentPosition());
-                        telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
+                        telemetry.addData("sender left", robot.mineralSend.getCurrentPosition());
+                        //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
                         telemetry.update();
                     }
                 } else if (mineralSenderPosition <= Position) {
                     while (opModeIsActive() && mineralSenderPosition <= Position) {
-                        robot.setMineralSendPower(-speed);
-                        mineralSenderPosition = robot.mineralSendRight.getCurrentPosition();
+                        robot.mineralSend.setPower(-speed);
+                        mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
-                        telemetry.addData("sender left", robot.mineralSendLeft.getCurrentPosition());
-                        telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
+                        telemetry.addData("sender left", robot.mineralSend.getCurrentPosition());
+                        //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
                         telemetry.update();
                     }
                 }
 
                 // Stop all motion;
-                robot.setMineralSendPower(0);
+                robot.mineralSend.setPower(0);
 
                 // Turn off RUN_TO_POSITION
-                robot.setMineralSendMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }
     }
@@ -670,13 +823,14 @@ public abstract class AutoMain extends LinearOpMode
     }
 
     /** PhoneVision **/
-    public void phoneVisionOn(){
-        phoneVision = new MineralVision();
+    public void initMyVision(){
+        vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
-        phoneVision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
+        vision.setShowCountours(false);
         // start the vision system
-        phoneVision.enable();
-        phoneVision.setShowCountours(true);
+        vision.enable();
+        runtime.reset();
     }
 }
 
