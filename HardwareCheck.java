@@ -77,9 +77,9 @@ public class HardwareCheck extends AutoMain{
         }
 
         try {
-            double md = robot.mineralsDivider.getPosition();
+            //double md = robot.mineralsDivider.getPosition();
             double b = robot.blockMineralServo.getPosition();
-            telemetry.addData("servo", md);
+            //telemetry.addData("servo", md);
             telemetry.addData("servo",b);
             telemetry.clear();
         }catch (Exception e){
@@ -168,7 +168,7 @@ public class HardwareCheck extends AutoMain{
                 {
                     for (int i = 0; i < 4; i++)
                     {
-                        driveByGyro(0.8, 80, 90 * i);
+                        driveByGyro(0.7, 150, 90 * i);
                         waitSeconds(1);
                         turnByGyro(TURN_SPEED, 90 * (i + 1));
                         waitSeconds(2);
