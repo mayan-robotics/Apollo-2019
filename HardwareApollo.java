@@ -67,7 +67,7 @@ public class HardwareApollo {
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // Mineral Blocker Positions
-    static final double block = 1;
+    static final double block = 0.85;
     static final double dontBlock = 0.6;
 
     // Mineral Blocker Positions
@@ -79,7 +79,7 @@ public class HardwareApollo {
     static final int MineralMiddleLimitRight = 600 ;
     static final int MineralLimitY = 40 ;
 
-    static final String Version= "1.1.12" ;
+    static final String Version= "1.1.22" ;
 
 
     /* local OpMode members. */
@@ -132,6 +132,8 @@ public class HardwareApollo {
         imu.initialize(parameters);
 
 
+
+
         // Touch
         touchPusher = hwMap.get(DigitalChannel.class, "touch" );
         touchPusher.setMode(DigitalChannel.Mode.INPUT );
@@ -150,6 +152,10 @@ public class HardwareApollo {
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
         push.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+        lift.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
+
+        mineralGrabRight.setDirection(Servo.Direction.REVERSE);    //Reverse motor
+
 
         //driveLeftBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
         //driveLeftFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
@@ -161,7 +167,7 @@ public class HardwareApollo {
         // Set all servos
 
         blockMineralServo.setPosition(block);
-        mineralBoxServo.setPosition(0);
+        mineralBoxServo.setPosition(0.8);
 
         // Set all motors to run without encoders.
         setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

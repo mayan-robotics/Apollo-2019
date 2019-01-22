@@ -154,10 +154,10 @@ public class HardwareCheck extends AutoMain{
             {
                 //Gyro drive test
                 telemetry.clear();
-                while (opModeIsActive() && gamepad1.right_trigger < 0.2)
-                {
-                    gyroDrive(0.8, 100, 0);
-                }
+                //while (opModeIsActive() && gamepad1.right_trigger < 0.2)
+                //{
+                    gyroDrive(0.2, 130, 0);
+                //}
                 telemetry.addData("Test","Stopped");
                 telemetry.update();
             } else if (gamepad1.a)
@@ -337,6 +337,9 @@ public class HardwareCheck extends AutoMain{
                     leftSpeed /= max;
                     rightSpeed /= max;
                 }
+                telemetry.addData("left speed",leftSpeed);
+                telemetry.addData("right speed",rightSpeed);
+                telemetry.update();
 
                 robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
                 robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
