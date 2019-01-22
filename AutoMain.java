@@ -10,6 +10,7 @@ import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.opencv.core.MatOfPoint;
@@ -31,32 +32,24 @@ public abstract class AutoMain extends LinearOpMode
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
 
-    //Vuforia parameters
-    private static final String VUFORIA_KEY = "ARCYecv/////AAABmcqxLpTXUUOPuxsa+4HIQ/GIzDMvaqWwbHZGO/Ai1kF7+COWChW41B25PqOkg6T0pwD5mJxJjStWJnIzFCHi0JyRYYqH+tscLebqWRxN7Me7udkEyQIwGw5VKxc4+gvttO/m04DvUGXEC7NjJNFtGZbbAGFBfD1UQY2vdDX1d14bIlRsHFiL9cD56NT4D0D+MACRGNnYUGs2DszENbJhIXy8uhUWeAHr3qERtEnGB0E/QoNVOxsa0G4LXl21NQhtmgYBvya9+2aC6BOjcwkEwu3XKTdYdfklbB8KNLB2+Wk6KYhTyET1YQg1+3E9asYLpnkkrZ836Y6WK7akFYds37io1yMZPRWG036tVQHfzxtD";
-    private VuforiaLocalizer vuforia;
-    private TFObjectDetector tfod;
-
-    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
-    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
-    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
     static final double DRIVE_SPEED = 0.7;     // Nominal speed for better accuracy.
     static final double TURN_SPEED = 0.5;     // Nominal half speed for better accuracy.
-    static final double SIDE_WAYS_DRIVE_SPEED = 0.8;     // Nominal speed for better accuracy.
+    static final double SIDE_WAYS_DRIVE_SPEED = 1;     // Nominal speed for better accuracy.
 
 
     static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
-    static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = 0.05;     // Larger is more responsive, but also less stable
+    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
 
-    static final int grabMineralsAmountSecondes= 3;
+    static final double grabMineralsAmountSecondes= 2;
 
 
-    static final int liftOpen = 1900;
+    static final int liftOpen = 300;
 
-    static final int liftClose = -2200;
+    static final int liftClose = 60;
 
 
     static final double senderOpenLimitPoint = -4500 ; // Limit so the sender motors wont open to much, by encoder ticks.
@@ -89,6 +82,7 @@ public abstract class AutoMain extends LinearOpMode
     }
 
     GoldPosition getStartGoldPositins= null;
+    GoldPosition Vision= null;
 
     //Init function, hardwareMap
     public void apolloInit() {
@@ -96,14 +90,11 @@ public abstract class AutoMain extends LinearOpMode
         robot.init(hardwareMap);
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.imuRestart();
+        gyroDegrees=0;
+        InitMyVision();
 
-        //Init Vuforia
-        initVuforia();
-        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
-            initTfod();
-        } else {
-            telemetry.addData("ERROR!", "This device is not compatible with TFOD");
-        }
+
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Apollo", "Ready");
@@ -114,38 +105,14 @@ public abstract class AutoMain extends LinearOpMode
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
-        climb();
+        encoderClimbVision(1,13000);
+        encoderClimb(1,27300);
 
-        waitSeconds(999);
-        // Get the main position of gold mineral at start.
-        getStartGoldPositins=getLocation(GetGoldLocation());
-        waitSeconds(2);
-        //while (opModeIsActive()) {
-            //getVuforiaGoldMineralPosition();
 
-            getStartGoldPositins = getLocation(GetGoldLocation());
-            telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
-            telemetry.update();
-
-        waitSeconds(1);
+        getStartGoldPositins=GoldPosition.MIDDLE;
 
         encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -30);
-        //waitSeconds(5);
-
-        gyroTurn(TURN_SPEED,angelForGyro(90));
-        waitSeconds(0.2);
-        gyroTurn(TURN_SPEED,angelForGyro(0));
-
-        //robot.imuRestart();
-        //waitSeconds(1);
-        //robot.init(hardwareMap);
-        //robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //waitSeconds(1);
-
-        //gyroDegrees = 0;
-
-        driveByGyro(0.3,-5 ,angelForGyro(0));
+        turnByGyro(0.6, angelForGyro(90));
 
        switch (getStartGoldPositins){
             case LEFT:
@@ -159,11 +126,6 @@ public abstract class AutoMain extends LinearOpMode
                 //driveByGyro(0.3,-20,angelForGyro(0));
                break;
         }
-
-
-        waitSeconds(1);
-
-
 
         /** If Crater **/
         if(isCrater)
@@ -204,34 +166,36 @@ public abstract class AutoMain extends LinearOpMode
 
                     break;
                 case MIDDLE:
-                    encoderLift(0.5,liftOpen);
-                    //waitSeconds(2);
-                    driveByGyro(0.5,20, angelForGyro(0));
-                    grabMinerals(-1);
-                    waitSeconds(2);
-                    encoderLift(0.5 , liftClose);
+                    gyroDrive(1,100, angelForGyro(0));
 
-                    robot.lift.setPower(0.01);
+                    encoderLift(1,liftOpen);
+                    robot.setDriveMotorsPower(0.1, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                    //waitSeconds(1);
+                    grabMinerals(0.8);
+                    robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
+                    robot.blockMineralServo.setPosition(robot.dontBlock);
+                    robot.mineralBoxServo.setPosition(0.3);
+                    encoderLift(1 , liftClose);
+                    //waitSeconds(1);
 
-                    waitSeconds(1);
-                    driveByGyro(1,80, angelForGyro(0));
+                    gyroDrive(1,-20,angelForGyro(0));
+                    gyroTurn(TURN_SPEED, angelForGyro(-45));
+                    robot.blockMineralServo.setPosition(robot.block);
+                    encoderMineralSend(-1, 7850);
+                    robot.mineralSend.setPower(-0.01);
+                    gyroTurn(0.2, angelForGyro(33));
+                    //waitSeconds(1);
 
-                    //driveByGyro(-DRIVE_SPEED,-30, angelForGyro(0));
-                    //gyroTurn(TURN_SPEED,angelForGyro(90));
-                    //driveByGyro(DRIVE_SPEED,135,angelForGyro(0));
+                    robot.mineralBoxServo.setPosition(1);
+                    robot.mineralSend.setPower(0);
+                    gyroDrive(1,20,angelForGyro(0));
+                    encoderLift(1,liftOpen);
+
 
                     break;
             }
-            encoderLift(0.5,liftOpen);
-            grabMinerals(-1);
-            waitSeconds(2);
-            //gyroTurn(TURN_SPEED,angelForGyro(-133));
-            //driveByGyro(1,-80,angelForGyro(0));
 
-            //encoderMineralSend(-1, mineralSendPositionOut);
-            //waitSeconds(3);
-            //encoderMineralSend(1, mineralSendPositionIn);
 
 
         }
@@ -293,7 +257,7 @@ public abstract class AutoMain extends LinearOpMode
                     //waitSeconds(2);
                     //encoderLift(0.5 , liftClose);
 
-                    robot.setMineralGrabServos(1);
+                    robot.setMineralGrabServos(5);
 
 
                     driveByGyro(0.5,40, angelForGyro(0));
@@ -310,13 +274,26 @@ public abstract class AutoMain extends LinearOpMode
 
 
         }
-        tfod.shutdown();
+        //tfod.shutdown();
 
+    }
+
+    public GoldPosition visionActivate(){
+        try {
+            GetGoldLocation();
+            Vision=getLocation();
+            telemetry.addData("Gold Mineral Position", getLocation());
+            telemetry.update();
+        }catch (Exception e){
+            telemetry.addData("ERROR","HELL");
+            telemetry.update();
+        }
+        return Vision;
     }
 
     // Function will be used to keep track of the gyro positions.
     public int angelForGyro(int degreesWanted){
-        gyroDegrees=gyroDegrees+degreesWanted;
+        gyroDegrees=(int)(GetGyroAngle())+degreesWanted;
         return gyroDegrees;
     }
 
@@ -365,51 +342,49 @@ public abstract class AutoMain extends LinearOpMode
 
     // Function converts the location of the gold mineral on the camera
     // to the real location of the gold mineral compare to the silver minerals.
-    public GoldPosition getLocation(GoldPosition vision){
-        switch ((vision)){
+    public GoldPosition getLocation(/* GoldPosition vision */){
+        switch ((GetGoldLocation())){
             case LEFT:
-                return GoldPosition.LEFT;
-            case RIGHT:
                 return GoldPosition.MIDDLE;
-            case MIDDLE:
-                return GoldPosition.LEFT;
-            case OUTOFRANGE:
+            case RIGHT:
                 return GoldPosition.RIGHT;
+            case MIDDLE:
+                return GoldPosition.MIDDLE;
+            case OUTOFRANGE:
+                return GoldPosition.LEFT;
         }
         return null;
     }
 
     //Function returns the location of the gold mineral.
     public GoldPosition GetGoldLocation(){
-        try {
+       try {
             List<MatOfPoint> contoursGold = new ArrayList<>();
             vision.setShowCountours(true);
 
             contoursGold.clear();
             vision.getGoldContours(contoursGold);
 
-
             if ((vision.goldMineralFound() == true) && (contoursGold != null)) {
                 if (!contoursGold.isEmpty()) {
                     if (contoursGold.size() >= 1) {
                         if (Imgproc.boundingRect(contoursGold.get(0)) != null) {
+
                             Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
                             //int goldXPosition = GoldBoundingRect.x;
+
                             int goldYPosition = GoldBoundingRect.y;
 
                             //telemetry.addData("Gold Position X", goldXPosition);
                             telemetry.addData("Gold Position Y", goldYPosition);
 
-                            if (goldYPosition < 300) {
+                            if (goldYPosition < 220) {
                                 telemetry.addData("Gold Position", "Left");
                                 return GoldPosition.LEFT;
-                            } else if (goldYPosition > 300) {
+                            } else if (goldYPosition > 220) {
                                 telemetry.addData("Gold Position", "Right");
                                 return GoldPosition.RIGHT;
-                            } //else if (goldYPosition > 450 && goldYPosition < 650) {
-                            //  telemetry.addData("Gold Position", "Middle");
-                            //  return GoldPosition.MIDDLE;
-                            //}
+                            }
                         }
                     }
                 }
@@ -420,7 +395,6 @@ public abstract class AutoMain extends LinearOpMode
         }catch (Exception e){
             telemetry.addData("Vision", "Error");
             telemetry.update();
-            return GoldPosition.OUTOFRANGE;
         }
 
         return null;}
@@ -437,8 +411,7 @@ public abstract class AutoMain extends LinearOpMode
      */
     public void gyroDrive ( double speed,
                             double Distance,
-                            double angle)
-    {
+                            double angle){
 
         int moveCounts;
         double max;
@@ -452,10 +425,9 @@ public abstract class AutoMain extends LinearOpMode
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int) (Distance);
-
-            // Set Target and Turn On RUN_TO_POSITION
             robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
             robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+
 
             robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -488,10 +460,12 @@ public abstract class AutoMain extends LinearOpMode
                     leftSpeed /= max;
                     rightSpeed /= max;
                 }
+                telemetry.addData("left speed",leftSpeed);
+                telemetry.addData("right speed",rightSpeed);
+                telemetry.update();
 
                 robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
                 robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-
             }
 
             // Stop all motion;
@@ -512,8 +486,7 @@ public abstract class AutoMain extends LinearOpMode
      *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                   If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroTurn (double speed, double angle)
-    {
+    public void gyroTurn (  double speed, double angle) {
 
         // keep looping while we are still active, and not on heading.
         while (opModeIsActive() && !onHeading(speed, angle, P_TURN_COEFF)) {
@@ -670,12 +643,12 @@ public abstract class AutoMain extends LinearOpMode
         }
     }
 
-    public void encoderLift(double speed, double Distance) {
+    public void encoderLift(double speed, int ticks) {
 
         robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
-            robot.setLiftMotorsPosition(Distance);
+            robot.lift.setTargetPosition(ticks);
             // Turn On RUN_TO_POSITION
             robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -701,22 +674,27 @@ public abstract class AutoMain extends LinearOpMode
     }
 
     public void climb(){
-        while (robot.climbMotor.getCurrentPosition() < 53700) {
+        while (robot.climbMotor.getCurrentPosition() < 23100) {
             robot.climbMotor.setPower(1);
 
-            getStartGoldPositins = getLocation(GetGoldLocation());
-            telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
+            visionActivate();
+            telemetry.addData("Gold Mineral Position is", visionActivate());
+
+            //getStartGoldPositins = getLocation(/*GetGoldLocation()*/);
+            //telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
             telemetry.update();
         }
         robot.climbMotor.setPower(0);
     }
 
-    public void encoderClimb(double speed, double Distance) {
+
+
+    public void encoderClimbVision(double speed, int ticks) {
 
         robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
-            robot.setLiftMotorsPosition(Distance);
+            robot.climbMotor.setTargetPosition(ticks);
             // Turn On RUN_TO_POSITION
             robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
@@ -731,6 +709,40 @@ public abstract class AutoMain extends LinearOpMode
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
                     (robot.climbMotor.isBusy())){
+                visionActivate();
+                getStartGoldPositins=visionActivate();
+                //telemetry.addData("Gold Mineral Position is", visionActivate());
+            }
+
+            // Stop all motion;
+            robot.climbMotor.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
+    public void encoderClimb(double speed, int ticks) {
+
+        robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            robot.climbMotor.setTargetPosition(ticks);
+            // Turn On RUN_TO_POSITION
+            robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.climbMotor.setPower(Math.abs(speed));
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (robot.climbMotor.isBusy())){
+                //telemetry.addData("Gold Mineral Position is", visionActivate());
             }
 
             // Stop all motion;
@@ -768,7 +780,7 @@ public abstract class AutoMain extends LinearOpMode
                         robot.mineralSend.setPower(speed);
                         mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
-                        telemetry.addData("sender left", robot.mineralSend.getCurrentPosition());
+                        telemetry.addData("sender ", robot.mineralSend.getCurrentPosition());
                         //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
                         telemetry.update();
                     }
@@ -777,7 +789,7 @@ public abstract class AutoMain extends LinearOpMode
                         robot.mineralSend.setPower(-speed);
                         mineralSenderPosition = robot.mineralSend.getCurrentPosition();
 
-                        telemetry.addData("sender left", robot.mineralSend.getCurrentPosition());
+                        telemetry.addData("sender ", robot.mineralSend.getCurrentPosition());
                         //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
                         telemetry.update();
                     }
@@ -793,45 +805,20 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
-    /**
-     * Initialize the Vuforia localization engine.
-     */
-    private void initVuforia() {
-        /*
-         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
-         */
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
-        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
-    }
-
-    /**
-     * Initialize the Tensor Flow Object Detection engine.
-     */
-    private void initTfod() {
-        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
-    }
-
-    /** PhoneVision **/
-    public void initMyVision(){
+    public void InitMyVision(){
         vision = new MineralVision();
         // can replace with ActivityViewDisplay.getInstance() for fullscreen
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         vision.setShowCountours(false);
         // start the vision system
         vision.enable();
-        runtime.reset();
     }
+    public float GetGyroAngle(){
+        Orientation angles =robot.imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.ZYX,AngleUnit.DEGREES);
+        return(AngleUnit.DEGREES.fromUnit(angles.angleUnit,angles.firstAngle));
+    }
+
+
 }
 
 
