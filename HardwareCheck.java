@@ -30,7 +30,7 @@ public class HardwareCheck extends AutoMain{
 
         try {
             robot.init(hardwareMap);
-            telemetry.addData("Apollo","init succeed");
+            telemetry.addData("Apollo","init succeeded");
             //telemetry.update();
         }catch (Exception e){
             telemetry.addData("ERROR01","INIT FAILED!   check your config");

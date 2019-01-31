@@ -79,7 +79,7 @@ public class HardwareApollo {
     static final int MineralMiddleLimitRight = 600 ;
     static final int MineralLimitY = 40 ;
 
-    static final String Version= "1.1.22" ;
+    static final String Version= "1.1.30" ;
 
 
     /* local OpMode members. */
@@ -133,7 +133,6 @@ public class HardwareApollo {
 
 
 
-
         // Touch
         touchPusher = hwMap.get(DigitalChannel.class, "touch" );
         touchPusher.setMode(DigitalChannel.Mode.INPUT );
@@ -155,34 +154,19 @@ public class HardwareApollo {
         lift.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
         mineralGrabRight.setDirection(Servo.Direction.REVERSE);    //Reverse motor
-
-
-        //driveLeftBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
-        //driveLeftFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-
-
         mineralSend.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
 
         // Set all servos
-
         blockMineralServo.setPosition(block);
-        mineralBoxServo.setPosition(0.8);
+        mineralBoxServo.setPosition(1);
+
+        // Rest all motors encoders.
+        setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Set all motors to run without encoders.
-        setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        mineralSend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        climbMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        push.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setAllMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        setDriveMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        climbMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        push.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //mineralSendRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     //Function to set the power to all the drive motors.
@@ -288,11 +272,14 @@ public class HardwareApollo {
         lift.setTargetPosition(newLift);
     }
 
-    public void setMineralSenderMotorsPosition(double ticks) {
-        int newSendLeft;
-        int newSendRight;
-        newSendLeft = mineralSend.getCurrentPosition() + (int)(ticks*COUNTS_PER_INCH);
-        mineralSend.setTargetPosition(newSendLeft);
+    //Function to set the run mode for all the motors.
+    public void setAllMotorsMode(DcMotor.RunMode runMode) {
+        setDriveMotorsMode(runMode);
+        mineralSend.setMode(runMode);
+        climbMotor.setMode(runMode);
+        lift.setMode(runMode);
+        push.setMode(runMode);
+
     }
 
 
