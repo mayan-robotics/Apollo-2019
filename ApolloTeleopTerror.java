@@ -15,7 +15,7 @@ import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
 
 @TeleOp(name="Teleop Apollo Terror", group="terror")
 
-public class ApolloTeleop extends LinearOpMode {
+public class ApolloTeleopTerror extends LinearOpMode {
 
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private MineralVision vision;
@@ -132,7 +132,7 @@ public class ApolloTeleop extends LinearOpMode {
                 mineralSenderWantedPosition = robot.mineralSend.getCurrentPosition();
                 //robot.mineralBoxServo.setPosition(robot.mineralBoxBlock);
             } else {
-                robot.mineralSend.setPower(0);
+                    robot.mineralSend.setPower(0);
             }
 
             mineralSenderPosition = robot.mineralSend.getCurrentPosition();

@@ -142,15 +142,15 @@ public class VisionGoldPositionTest extends OpMode {
     // Function converts the location of the gold mineral on the camera
     // to the real location of the gold mineral compare to the silver minerals.
     public GoldPosition getLocation() {
-        switch (GetGoldLocation()) {
+        switch ((GetGoldLocation())){
             case LEFT:
-                return GoldPosition.LEFT;
-            case RIGHT:
                 return GoldPosition.MIDDLE;
-            case MIDDLE:
-                return GoldPosition.LEFT;
-            case OUTOFRANGE:
+            case RIGHT:
                 return GoldPosition.RIGHT;
+            case MIDDLE:
+                return GoldPosition.MIDDLE;
+            case OUTOFRANGE:
+                return GoldPosition.LEFT;
         }
         return null;
     }
