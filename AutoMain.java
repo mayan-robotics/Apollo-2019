@@ -46,7 +46,6 @@ public abstract class AutoMain extends LinearOpMode
 
     static final double grabMineralsAmountSecondes= 2;
 
-
     static final int liftOpen = 300;
     static final int liftClose = 62;
     static final int climbOpenPosition = 27000;
@@ -66,11 +65,6 @@ public abstract class AutoMain extends LinearOpMode
         OUTOFRANGE
     }
 
-    private enum SuccessORFail {
-        SUCCESS,
-        FAIL
-    }
-
     GoldPosition getStartGoldPositins= null;
     GoldPosition Vision= null;
 
@@ -81,9 +75,11 @@ public abstract class AutoMain extends LinearOpMode
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.imuRestart();
         gyroDegrees=0;
+        // Init camera and turn it on.
         InitMyVision();
-        // Send telemetry message to signify robot waiting;
+        // Send telemetry message to signify robot is ready;
         telemetry.addData("Version", robot.Version);
+        telemetry.addData("Apollo", "Init success");
         telemetry.update();
     }
 
@@ -97,14 +93,20 @@ public abstract class AutoMain extends LinearOpMode
 
        switch (getStartGoldPositins){
             case LEFT:
+                //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpen);
                 driveByGyro(1,40,angelForGyro(0));
                 encoderSideWaysDrive(1, -95);
                 break;
             case RIGHT:
+                //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpen);
                 driveByGyro(1,40,angelForGyro(0));
                 encoderSideWaysDrive(1, 95);
                break;
         }
+        //gyroDrive(1,50, angelForGyro(0));
+        //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoClose);
+        //robot.goldMineralRightServo.setPosition(robot.goldMineralServoClose);
+        //gyroDrive(1,50, angelForGyro(0));
 
         /** If Crater **/
         if(isCrater)
@@ -123,24 +125,7 @@ public abstract class AutoMain extends LinearOpMode
                     robot.setMineralGrabServos(0);
                     waitSeconds(1);
                     encoderLift(1 , liftOpen);
-                    /*
-                    //waitSeconds(2);
-                    //waitSeconds(1);
 
-                    //gyroDrive(1,-20,angelForGyro(0));
-                    //gyroTurn(TURN_SPEED, angelForGyro(-45));
-                    robot.blockMineralServo.setPosition(robot.block);
-                    encoderMineralSend(-1, 7850);
-                    robot.mineralSend.setPower(-0.01);
-                    gyroTurn(0.2, angelForGyro(10));
-                    //waitSeconds(1);
-
-                    robot.mineralBoxServo.setPosition(1);
-                    robot.mineralSend.setPower(0);
-                    gyroDrive(1,20,angelForGyro(0));
-                    robot.mineralBoxServo.setPosition(0);
-                    encoderLift(1,liftOpen);
-*/
                     break;
 
                 case RIGHT:
@@ -162,24 +147,6 @@ public abstract class AutoMain extends LinearOpMode
                     waitSeconds(1);
                     encoderLift(1 , liftOpen);
 
-                    /*
-
-                    //waitSeconds(1);
-
-                    //gyroDrive(1,-20,angelForGyro(0));
-                    //gyroTurn(TURN_SPEED, angelForGyro(-45));
-                    robot.blockMineralServo.setPosition(robot.block);
-                    encoderMineralSend(-1, 7850);
-                    robot.mineralSend.setPower(-0.01);
-                    gyroTurn(0.2, angelForGyro(10));
-                    //waitSeconds(1);
-
-                    robot.mineralBoxServo.setPosition(1);
-                    robot.mineralSend.setPower(0);
-                    gyroDrive(1,20,angelForGyro(0));
-                    robot.mineralBoxServo.setPosition(0);
-                    encoderLift(1,liftOpen);
-*/
                     break;
 
                 case MIDDLE:
@@ -192,34 +159,6 @@ public abstract class AutoMain extends LinearOpMode
                     waitSeconds(0.8);
                     encoderLift(1 , liftOpen);
 
-                    /*
-                    encoderLift(1,liftOpen);
-                    //robot.setDriveMotorsPower(0.1, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                    //waitSeconds(1);
-                    grabMinerals(0.8, grabMineralsAmountSecondes);
-                    //robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-
-                    robot.blockMineralServo.setPosition(robot.dontBlock);
-                    robot.mineralBoxServo.setPosition(0.3);
-                    encoderLift(1 , liftClose);
-                    //waitSeconds(1);
-                    */
-
-                    /*
-                    gyroDrive(1,-20,angelForGyro(0));
-                    gyroTurn(TURN_SPEED, angelForGyro(-45));
-                    robot.blockMineralServo.setPosition(robot.block);
-                    encoderLift(1,80);
-                    encoderMineralSend(-1, 7850);
-                    robot.mineralSend.setPower(-0.01);
-                    gyroTurn(0.2, angelForGyro(33));
-                    //waitSeconds(1);
-
-                    robot.mineralBoxServo.setPosition(1);
-                    robot.mineralSend.setPower(0);
-                    gyroDrive(1,20,angelForGyro(0));
-                    encoderLift(1,liftOpen);
-*/
                     break;
             }
 
@@ -295,19 +234,13 @@ public abstract class AutoMain extends LinearOpMode
                     break;
 
             }
-
-
         }
 
     }
 
 
 
-
-    /** DON'T CHANGE BELOW THIS - DON'T CHANGE BELOW THIS - DON'T CHANGE BELOW THIS - DON'T CHANGE BELOW THIS **/
-
-
-    public void robotGrabMIneral(){
+    public void robotGrabMineral(){
         encoderLift(1,liftOpen);
         //robot.setDriveMotorsPower(0.1, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
         //waitSeconds(1);
@@ -323,11 +256,11 @@ public abstract class AutoMain extends LinearOpMode
     public GoldPosition visionActivate(){
         try {
             GetGoldLocation();
-            Vision=getLocation();
-            telemetry.addData("Gold Mineral Position", getLocation());
+            Vision=getRealLocation();
+            telemetry.addData("Gold Mineral Position", getRealLocation());
             telemetry.update();
         }catch (Exception e){
-            telemetry.addData("ERROR","HELL");
+            telemetry.addData("ERROR","Vision");
             telemetry.update();
         }
         return Vision;
@@ -351,40 +284,13 @@ public abstract class AutoMain extends LinearOpMode
     public void waitSeconds(double seconds)
     {
         runtime.reset();
-        while (opModeIsActive() && (runtime.seconds() < seconds)) {
-        }
+        while (opModeIsActive() && (runtime.seconds() < seconds)) { }
     }
 
-    // Function drives until the gold mineral is in the middle by our camera.
-    public SuccessORFail moveToGoldMineralByVuforia( GoldPosition useGoldPositions){
-        if(GetGoldLocation()!= null) {
-            telemetry.addData("Vision gold position", GetGoldLocation());
-            if (useGoldPositions == GoldPosition.LEFT) {
-                telemetry.addData("Drive", "left");
-                robot.setDriveMotorsPower(-SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
-            }
-            else if (useGoldPositions == GoldPosition.RIGHT) {
-                telemetry.addData("Drive", "right");
-                robot.setDriveMotorsPower(SIDE_WAYS_DRIVE_SPEED, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
-            }
-            else if (useGoldPositions == GoldPosition.MIDDLE)
-            {
-                telemetry.addData("Drive", "Middle");
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                return SuccessORFail.SUCCESS;
-            }
-            else {
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                telemetry.addData("camera", "Error");
-                return SuccessORFail.FAIL;
-            }
-        }
-        return null;
-    }
 
     // Function converts the location of the gold mineral on the camera
     // to the real location of the gold mineral compare to the silver minerals.
-    public GoldPosition getLocation(/* GoldPosition vision */){
+    public GoldPosition getRealLocation(/* GoldPosition vision */){
         switch ((GetGoldLocation())){
             case LEFT:
                 return GoldPosition.MIDDLE;
@@ -398,7 +304,7 @@ public abstract class AutoMain extends LinearOpMode
         return null;
     }
 
-    //Function returns the location of the gold mineral.
+    //Function returns the location of the gold mineral on the camera.
     public GoldPosition GetGoldLocation(){
        try {
             List<MatOfPoint> contoursGold = new ArrayList<>();
@@ -416,22 +322,20 @@ public abstract class AutoMain extends LinearOpMode
                             //int goldXPosition = GoldBoundingRect.x;
 
                             int goldYPosition = GoldBoundingRect.y;
-
-                            //telemetry.addData("Gold Position X", goldXPosition);
-                            telemetry.addData("Gold Position Y", goldYPosition);
+                            //telemetry.addData("Gold Position Y", goldYPosition);
 
                             if (goldYPosition < 400) {
-                                telemetry.addData("Gold Position", "Left");
+                                //telemetry.addData("Gold Position", "Left");
                                 return GoldPosition.LEFT;
                             } else if (goldYPosition > 400) {
-                                telemetry.addData("Gold Position", "Right");
+                                //telemetry.addData("Gold Position", "Right");
                                 return GoldPosition.RIGHT;
                             }
                         }
                     }
                 }
             } else {
-                telemetry.addData("Apollo", "did not find a gold mineral");
+                //telemetry.addData("Apollo", "did not find a gold mineral");
                 return GoldPosition.OUTOFRANGE;
             }
         }catch (Exception e){
@@ -722,7 +626,7 @@ public abstract class AutoMain extends LinearOpMode
             visionActivate();
             telemetry.addData("Gold Mineral Position is", visionActivate());
 
-            //getStartGoldPositins = getLocation(/*GetGoldLocation()*/);
+            //getStartGoldPositins = getRealLocation(/*GetGoldLocation()*/);
             //telemetry.addData("Gold Mineral Position is", getStartGoldPositins);
             telemetry.update();
         }
@@ -730,21 +634,20 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
-
+    // Function gets the climbing motor to the position wanted. And activates vision to check where the gold mineral, in the same time.
     public void encoderClimbVision(double speed, int ticks) {
-
         robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
-            robot.climbMotor.setTargetPosition(ticks);
+            robot.climbMotor.setTargetPosition(ticks);  // Set the wanted target.
             // Turn On RUN_TO_POSITION
             robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            robot.climbMotor.setPower(Math.abs(speed));
+            robot.climbMotor.setPower(Math.abs(speed));     // Set speed
             // keep looping while we are still active, and there is time left, and both motors are running.
             while (opModeIsActive() &&
                     (robot.climbMotor.isBusy())){
-                visionActivate();
+                visionActivate();   // Activate Vision and check where is the gold mineral.
                 getStartGoldPositins=visionActivate();
             }
 
@@ -839,12 +742,13 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
+
     public void InitMyVision(){
         vision = new MineralVision();
-        // can replace with ActivityViewDisplay.getInstance() for fullscreen
+        // Start to display image of camera.
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance());
         vision.setShowCountours(false);
-        // start the vision system
+        // start the vision system.
         vision.enable();
     }
     public float GetGyroAngle(){
