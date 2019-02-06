@@ -9,8 +9,8 @@ public class AutoCrater extends AutoMain {
     @Override
     public void runOpMode() throws InterruptedException {
         apolloInit();
-        telemetry.addData("Apollo", "Ready");
-        telemetry.update();
+        //telemetry.addData("Apollo", "Ready");
+        //telemetry.update();
         waitForStart();
 
         apolloRun(true);
