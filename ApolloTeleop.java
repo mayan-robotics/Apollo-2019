@@ -26,9 +26,16 @@ public class ApolloTeleop extends LinearOpMode {
     static double normalOrReversDrive = 1;  //
 
     static final double joyStickLimitPoints = 0.3;  // For better control
-    static final double senderOpenLimitPoint = 7900; // Limit so the sender motors wont open to much, by encoder ticks.
-    static final double senderCloseLimitPoint = 0; // Limit so the sender motors wont open to much, by encoder ticks.
-    static final double convertJoystickToPosition = 10; //
+
+
+    static final double senderOpenEncoderLimitPoint = 7900; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final double senderCloseEncoderLimitPoint = 0; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final double liftOpenEncoderLimitPoint = 0;
+    static final double liftCloseEncoderLimitPoint = 0;
+    static final double pushOpenEncoderLimitPoint = 0;
+    static final double pushCloseEncoderLimitPoint = 0;
+
+
     int mineralSenderPosition; // Encoder positions
     int mineralSenderWantedPosition = 0; // Encoder positions
 
