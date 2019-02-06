@@ -39,6 +39,9 @@ public class HardwareApollo {
     public Servo    mineralGrabRight = null;
     public Servo    mineralGrabLeft = null;
 
+    public Servo    goldMineralLeftServo = null;
+    public Servo    goldMineralRightServo = null;
+
     BNO055IMU imu;
 
     DigitalChannel touchPusher ;
@@ -53,11 +56,6 @@ public class HardwareApollo {
         ALL
     }
 
-    //Declaration of Minerals.
-    public enum TYPE_MINERALS {
-        GOLD,
-        SILVER,
-    }
 
     // Encoder
     static final double     COUNTS_PER_MOTOR_REV    = 280 ;     // PPR for NeverRest 40
@@ -79,16 +77,17 @@ public class HardwareApollo {
     static final int MineralMiddleLimitRight = 600 ;
     static final int MineralLimitY = 40 ;
 
-    static final String Version= "1.1.30" ;
+    // Gold Mineral servo position to be open or closed.
+    static final double goldMineralServoOpen = 0;
+    static final double goldMineralServoClose = 0;
 
+    static final String Version= "1.2.7" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
 
     /* Constructor */
-    public HardwareApollo(){
-
-    }
+    public HardwareApollo(){    }
 
 
     /* Initialize standard Hardware interfaces */
@@ -112,7 +111,15 @@ public class HardwareApollo {
         mineralBoxServo  = hwMap.get(Servo.class, "mineralOpen");
         mineralGrabLeft  = hwMap.get(Servo.class, "mineralGrabLeft");
         mineralGrabRight  = hwMap.get(Servo.class, "mineralGrabRight");
+        goldMineralLeftServo = hwMap.get(Servo.class, "goldMineralLeft");
+        goldMineralRightServo = hwMap.get(Servo.class, "goldMineralRight");
+
         // Define and initialize ALL sensors
+        // Touch sensor
+        touchPusher = hwMap.get(DigitalChannel.class, "touch" );
+        touchPusher.setMode(DigitalChannel.Mode.INPUT );
+
+        // Imu
         imu = hwMap.get(BNO055IMU.class, "imu");
 
         // Set up the parameters with which we will use our IMU. Note that integration
@@ -131,35 +138,28 @@ public class HardwareApollo {
         // and named "imu".
         imu.initialize(parameters);
 
-
-
-        // Touch
-        touchPusher = hwMap.get(DigitalChannel.class, "touch" );
-        touchPusher.setMode(DigitalChannel.Mode.INPUT );
+        // Set all motors directions.
+        driveRightBack.setDirection(DcMotor.Direction.REVERSE);     // Reversed motor
+        driveRightFront.setDirection(DcMotor.Direction.REVERSE);    // Reversed motor
+        push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
+        lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
+        mineralGrabRight.setDirection(Servo.Direction.REVERSE);     // Reversed motor
+        mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
 
         // Set all motors to zero power
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);
-        //mineralGrab.setPower(0);
         lift.setPower(0);
         push.setPower(0);
         climbMotor.setPower(0);
         mineralSend.setPower(0);
-
         setMineralGrabServos(0);
 
-        driveRightBack.setDirection(DcMotor.Direction.REVERSE);     //Reverse motor
-        driveRightFront.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
 
-        push.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-        lift.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-
-        mineralGrabRight.setDirection(Servo.Direction.REVERSE);    //Reverse motor
-        mineralSend.setDirection(DcMotor.Direction.REVERSE);    //Reverse motor
-
-
-        // Set all servos
+        // Set all servos positions
         blockMineralServo.setPosition(block);
         mineralBoxServo.setPosition(1);
+        goldMineralLeftServo.setPosition(goldMineralServoClose);
+        goldMineralRightServo.setPosition(goldMineralServoClose);
 
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
