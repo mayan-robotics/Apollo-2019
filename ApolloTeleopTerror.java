@@ -20,7 +20,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private MineralVision vision;
 
-    private ElapsedTime runtime = new ElapsedTime();
+    //private ElapsedTime runtime = new ElapsedTime();
     //private ElapsedTime time = new ElapsedTime();
 
     static double speedFactor = 1;  // Speed factor
@@ -49,11 +49,11 @@ public class ApolloTeleopTerror extends LinearOpMode {
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
-        runtime.reset();
+        //runtime.reset();
 
 
         while (opModeIsActive()) {
-/*
+
             if(gamepad1.dpad_left){
                 robot.mineralPush.setPosition(0.2);
             }else if(gamepad1.dpad_right){
@@ -62,7 +62,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
             else if(gamepad1.dpad_up){
                 robot.mineralPush.setPosition(0);
             }
-*/
+
 
             //Controllers drive sticks inputs
             double LeftStickX = gamepad1.left_stick_x * normalOrReversDrive;
@@ -232,12 +232,14 @@ public class ApolloTeleopTerror extends LinearOpMode {
         }
 
     }
+    /*
     // Function to wait an amount of seconds.
     public void waitSeconds(double seconds)
     {
         runtime.reset();
         while (opModeIsActive() && (runtime.seconds() < seconds)) { }
     }
+    */
 /*
     public void setGoldMineralServoOpenLeft(){
         //if (robot.goldMineralLeftServo.getPosition()!=0.5) {
