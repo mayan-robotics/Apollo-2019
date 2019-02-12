@@ -110,6 +110,7 @@ public class HardwareCheck extends AutoMain{
                 telemetry.addData("Left Back",robot.driveLeftBack.getCurrentPosition());
                 telemetry.addData("Right Front",robot.driveRightFront.getCurrentPosition());
                 telemetry.addData("Right Back",robot.driveRightBack.getCurrentPosition());
+                telemetry.update();
             }
 
 
@@ -123,6 +124,11 @@ public class HardwareCheck extends AutoMain{
                 {
                     robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     robot.setDriveMotorsPower(0.1, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                    telemetry.addData("Left Front",robot.driveLeftFront.getCurrentPosition());
+                    telemetry.addData("Left Back",robot.driveLeftBack.getCurrentPosition());
+                    telemetry.addData("Right Front",robot.driveRightFront.getCurrentPosition());
+                    telemetry.addData("Right Back",robot.driveRightBack.getCurrentPosition());
+                    telemetry.update();
                 }
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
                 telemetry.addData("Test","Stopped");
@@ -132,10 +138,10 @@ public class HardwareCheck extends AutoMain{
                 //Encoder drive one wheel rotation
                 telemetry.clear();
                 while (opModeIsActive() && gamepad1.right_trigger < 0.2) {
-                    int newLeftFrontTarget = robot.driveLeftFront.getCurrentPosition() + (int) (HardwareTeleopTest.COUNTS_PER_INCH);
-                    int newLeftBackTarget = robot.driveLeftBack.getCurrentPosition() + (int) (HardwareTeleopTest.COUNTS_PER_INCH);
-                    int newRightFrontTarget = robot.driveRightFront.getCurrentPosition() + (int) (HardwareTeleopTest.COUNTS_PER_INCH);
-                    int newRightBackTarget = robot.driveRightBack.getCurrentPosition() + (int) (HardwareTeleopTest.COUNTS_PER_INCH);
+                    int newLeftFrontTarget = robot.driveLeftFront.getCurrentPosition() + (int) (robot.COUNTS_PER_INCH);
+                    int newLeftBackTarget = robot.driveLeftBack.getCurrentPosition() + (int) (robot.COUNTS_PER_INCH);
+                    int newRightFrontTarget = robot.driveRightFront.getCurrentPosition() + (int) (robot.COUNTS_PER_INCH);
+                    int newRightBackTarget = robot.driveRightBack.getCurrentPosition() + (int) (robot.COUNTS_PER_INCH);
 
                     robot.driveLeftFront.setTargetPosition(newLeftFrontTarget);
                     robot.driveLeftBack.setTargetPosition(newLeftBackTarget);
@@ -267,6 +273,9 @@ public class HardwareCheck extends AutoMain{
                 telemetry.clear();
                 telemetry.addData("Test","Stopped");
                 telemetry.update();
+            }
+            else if(gamepad1.dpad_up){
+                gyroDriveSideWays(1,30,0);
             }
             else {
                 telemetry.addData("X", "Encoder drive speed test");
@@ -539,6 +548,86 @@ public class HardwareCheck extends AutoMain{
     public void driveByGyro(double speed, double Distance, double angle){
         gyroDrive(speed, Distance, angle);
         turnByGyro(TURN_SPEED,angle);
+    }
+
+    /*
+     *  Method to perfmorm a relative move, based on encoder counts.
+     *  Encoders are not reset as the move is based on the current position.
+     *  Move will stop if any of three conditions occur:
+     *  1) Move gets to the desired position
+     *  2) Move runs out of time
+     *  3) Driver stops the opmode running.
+     */
+    public void gyroDriveSideWays ( double speed,
+                                    double Distance,
+                                    double angle){
+
+        int moveCounts;
+        double max;
+        double error;
+        double steer;
+        double leftSpeed;
+        double rightSpeed;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            moveCounts = (int) (Distance);
+            robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            //robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+
+
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // start motion.
+            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+
+            robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+            // keep looping while we are still active, and BOTH motors are running.
+            while (opModeIsActive() &&
+                    (robot.driveLeftFront.isBusy()
+                            && robot.driveLeftBack.isBusy()
+                            && robot.driveRightFront.isBusy()
+                            && robot.driveRightBack.isBusy())) {
+
+                // adjust relative speed based on heading error.
+                error = getError(angle);
+                steer = getSteer(error, P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (Distance < 0)
+                    steer *= -1.0;
+
+                leftSpeed = speed - steer;
+                rightSpeed = speed + steer;
+
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0) {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
+                }
+                telemetry.addData("left speed",leftSpeed);
+                telemetry.addData("right speed",rightSpeed);
+                telemetry.update();
+
+                robot.driveLeftFront.setPower(leftSpeed);
+                robot.driveRightBack.setPower(leftSpeed);
+                robot.driveLeftBack.setPower(rightSpeed);
+                robot.driveRightFront.setPower(rightSpeed);
+
+                //robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                //robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+            }
+
+            // Stop all motion;
+            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+            // Turn off RUN_TO_POSITION
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
     }
 
 }

@@ -42,13 +42,15 @@ public abstract class AutoMain extends LinearOpMode
 
     static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.1;     // Larger is more responsive, but also less stable
+
+    //static final double P_DRIVE_COEFF = 0.15;     // Larger is more responsive, but also less stable
 
     static final double grabMineralsAmountSecondes= 2;
 
     static final int liftOpen = 300;
     static final int liftClose = 62;
-    static final int climbOpenPosition = 27000;
+    static final int climbOpenPosition = 17720;
     static final double senderOpenLimitPoint = -4500 ; // Limit so the sender motors wont open to much, by encoder ticks.
 
     int gyroDegrees = 0;
@@ -86,7 +88,15 @@ public abstract class AutoMain extends LinearOpMode
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
-        encoderClimbVision(1, climbOpenPosition);
+
+        robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
+        robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
+        waitSeconds(999);
+        robotGrabMineral();
+
+        waitSeconds(999);
+
+        encoderClimbVision(1, robot.climbOpenPosition);
         encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -30);
 
         gyroTurn(0.6, angelForGyro(90));
@@ -241,15 +251,21 @@ public abstract class AutoMain extends LinearOpMode
 
 
     public void robotGrabMineral(){
-        encoderLift(1,liftOpen);
+        encoderPush(1,1500);
+        encoderLift(1,robot.liftOpenEncoderLimitPoint);
+        robot.mineralBoxServo.setPosition(0.3);
+        encoderPush(1,0);
         //robot.setDriveMotorsPower(0.1, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
         //waitSeconds(1);
         grabMinerals(0.8, grabMineralsAmountSecondes);
+        encoderLift(1,robot.liftCloseEncoderLimitPoint);
         //robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
         robot.blockMineralServo.setPosition(robot.dontBlock);
-        robot.mineralBoxServo.setPosition(0.3);
-        encoderLift(1 , 50);
+        encoderLift(1 , robot.senderOpenEncoderLimitPoint);
+        waitSeconds(1);
+        robot.mineralBoxServo.setPosition(1);
+        //encoderLift(1 , 50);
     }
 
 
@@ -589,6 +605,36 @@ public abstract class AutoMain extends LinearOpMode
         }
     }
 
+    public void encoderPush(double speed, int ticks) {
+
+        robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            robot.push.setTargetPosition(ticks);
+            // Turn On RUN_TO_POSITION
+            robot.push.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            robot.push.setPower(Math.abs(speed));
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+            // its target position, the motion will stop.  This is "safer" in the event that the robot will
+            // always end the motion as soon as possible.
+            // However, if you require that BOTH motors have finished their moves before the robot continues
+            // onto the next step, use (isBusy() || isBusy()) in the loop test.
+            while (opModeIsActive() &&
+                    (robot.push.isBusy())){
+            }
+
+            // Stop all motion;
+            robot.push.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
     public void encoderLift(double speed, int ticks) {
 
         robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -634,7 +680,8 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
-    // Function gets the climbing motor to the position wanted. And activates vision to check where the gold mineral, in the same time.
+    // Function gets the climbing motor to the position wanted.
+    // And activates vision to check where the gold mineral, in the same time.
     public void encoderClimbVision(double speed, int ticks) {
         robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // Ensure that the opmode is still active
@@ -647,8 +694,8 @@ public abstract class AutoMain extends LinearOpMode
             // keep looping while we are still active, and there is time left, and both motors are running.
             while (opModeIsActive() &&
                     (robot.climbMotor.isBusy())){
-                visionActivate();   // Activate Vision and check where is the gold mineral.
-                getStartGoldPositins=visionActivate();
+                // Activate Vision and check where is the gold mineral. Save the position.
+                getStartGoldPositins = visionActivate();
             }
 
             // Stop all motion;
@@ -742,7 +789,6 @@ public abstract class AutoMain extends LinearOpMode
     }
 
 
-
     public void InitMyVision(){
         vision = new MineralVision();
         // Start to display image of camera.
@@ -754,6 +800,87 @@ public abstract class AutoMain extends LinearOpMode
     public float GetGyroAngle(){
         Orientation angles =robot.imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.ZYX,AngleUnit.DEGREES);
         return(AngleUnit.DEGREES.fromUnit(angles.angleUnit,angles.firstAngle));
+    }
+
+
+    /*
+     *  Method to perfmorm a relative move, based on encoder counts.
+     *  Encoders are not reset as the move is based on the current position.
+     *  Move will stop if any of three conditions occur:
+     *  1) Move gets to the desired position
+     *  2) Move runs out of time
+     *  3) Driver stops the opmode running.
+     */
+    public void gyroDriveSideWays ( double speed,
+                            double Distance,
+                            double angle){
+
+        int moveCounts;
+        double max;
+        double error;
+        double steer;
+        double leftSpeed;
+        double rightSpeed;
+
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+
+            // Determine new target position, and pass to motor controller
+            moveCounts = (int) (Distance);
+            robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.SIDE_WAYS);
+            //robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+
+
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // start motion.
+            speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+
+            robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+            // keep looping while we are still active, and BOTH motors are running.
+            while (opModeIsActive() &&
+                    (robot.driveLeftFront.isBusy()
+                            && robot.driveLeftBack.isBusy()
+                            && robot.driveRightFront.isBusy()
+                            && robot.driveRightBack.isBusy())) {
+
+                // adjust relative speed based on heading error.
+                error = getError(angle);
+                steer = getSteer(error, P_DRIVE_COEFF);
+
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (Distance < 0)
+                    steer *= -1.0;
+
+                leftSpeed = speed - steer;
+                rightSpeed = speed + steer;
+
+                // Normalize speeds if either one exceeds +/- 1.0;
+                max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                if (max > 1.0) {
+                    leftSpeed /= max;
+                    rightSpeed /= max;
+                }
+                telemetry.addData("left speed",leftSpeed);
+                telemetry.addData("right speed",rightSpeed);
+                telemetry.update();
+
+                robot.driveLeftFront.setPower(leftSpeed);
+                robot.driveRightBack.setPower(leftSpeed);
+                robot.driveLeftBack.setPower(rightSpeed);
+                robot.driveRightFront.setPower(rightSpeed);
+
+                //robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                //robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+            }
+
+            // Stop all motion;
+            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+            // Turn off RUN_TO_POSITION
+            robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
     }
 
 

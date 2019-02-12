@@ -13,7 +13,7 @@ import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
  * Apollo Teleop driving.
  */
 
-@TeleOp(name="Teleop Apollo Terror", group="terror")
+@TeleOp(name="Teleop Apollo", group="terror")
 
 public class ApolloTeleop extends LinearOpMode {
 
@@ -163,11 +163,9 @@ public class ApolloTeleop extends LinearOpMode {
 
 
             // Mineral blocker control. Game pad 2 bumper.
-            if (gamepad1.a) {
-                robot.mineralBoxServo.setPosition(0.1);
-            } else if (gamepad1.x) {
+            if (gamepad1.y) {
                 robot.mineralBoxServo.setPosition(0.3);
-            } else if (gamepad1.y) {
+            } else if (gamepad1.a) {
                 robot.mineralBoxServo.setPosition(1);
             }
 
@@ -200,9 +198,9 @@ public class ApolloTeleop extends LinearOpMode {
 
             if (gamepad2.dpad_up && gamepad2.dpad_down) {
                 robot.climbMotor.setPower(0);
-            } else if (gamepad2.dpad_up) {
+            } else if (gamepad2.dpad_up && climbPosition < robot.climbOpenPosition) {
                 robot.climbMotor.setPower(1);
-            } else if (gamepad2.dpad_down) {
+            } else if (gamepad2.dpad_down && climbPosition > 0) {
                 robot.climbMotor.setPower(-1);
             } else {
                 robot.climbMotor.setPower(0);

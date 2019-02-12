@@ -42,6 +42,11 @@ public class HardwareApollo {
     public Servo    goldMineralLeftServo = null;
     public Servo    goldMineralRightServo = null;
 
+    public Servo    mineralPassLeft = null;
+    public Servo    mineralPassRight = null;
+
+    public Servo    mineralPush = null;
+
     BNO055IMU imu;
 
     DigitalChannel touchPusher ;
@@ -65,7 +70,7 @@ public class HardwareApollo {
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
 
     // Mineral Blocker Positions
-    static final double block = 0.85;
+    static final double block = 1;
     static final double dontBlock = 0.6;
 
     // Mineral Blocker Positions
@@ -78,10 +83,27 @@ public class HardwareApollo {
     static final int MineralLimitY = 40 ;
 
     // Gold Mineral servo position to be open or closed.
-    static final double goldMineralServoOpen = 0;
-    static final double goldMineralServoClose = 0;
+    static final double goldMineralServoOpenLeft = 0.5;
+    static final double goldMineralServoCloseLeft = 0.2;
+    static final double goldMineralServoOpenRight = 0.5;
+    static final double goldMineralServoCloseRight = 0.8;
 
-    static final String Version= "1.2.7" ;
+    static final int climbOpenPosition = 17700;
+
+    static final double mineralPassLeftOpen = 0.5;
+    static final double mineralPassRightOpen = 0.1;
+    static final double mineralPassLeftClose = 0.7;
+    static final double mineralPassRightClose = 0.4;
+
+
+    static final int senderOpenEncoderLimitPoint = 9100; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final int senderCloseEncoderLimitPoint = 0; // Limit so the sender motors wont open to much, by encoder ticks.
+    static final int liftOpenEncoderLimitPoint = 500;
+    static final int liftCloseEncoderLimitPoint = 20;
+    static final int pushOpenEncoderLimitPoint = 3700;
+    static final int pushCloseEncoderLimitPoint = 0;
+
+    static final String Version = "1.2.11" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -113,6 +135,9 @@ public class HardwareApollo {
         mineralGrabRight  = hwMap.get(Servo.class, "mineralGrabRight");
         goldMineralLeftServo = hwMap.get(Servo.class, "goldMineralLeft");
         goldMineralRightServo = hwMap.get(Servo.class, "goldMineralRight");
+        mineralPassLeft = hwMap.get(Servo.class, "mineralPassLeft");
+        mineralPassRight = hwMap.get(Servo.class, "mineralPassRight");
+        mineralPush = hwMap.get(Servo.class, "mineralPush");
 
         // Define and initialize ALL sensors
         // Touch sensor
@@ -154,12 +179,16 @@ public class HardwareApollo {
         mineralSend.setPower(0);
         setMineralGrabServos(0);
 
+        mineralPush.setPosition(0);
+
 
         // Set all servos positions
         blockMineralServo.setPosition(block);
         mineralBoxServo.setPosition(1);
-        goldMineralLeftServo.setPosition(goldMineralServoClose);
-        goldMineralRightServo.setPosition(goldMineralServoClose);
+        goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
+        goldMineralRightServo.setPosition(goldMineralServoCloseRight);
+        //mineralPassLeft.setPosition(1);
+        //mineralPassRight.setPosition(1);
 
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -167,6 +196,18 @@ public class HardwareApollo {
         // Set all motors to run without encoders.
         setAllMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+    }
+
+    public void setGoldMineralServoOpenLeft(){
+        goldMineralLeftServo.setPosition(0.3);
+        //goldMineralLeftServo.setPosition(0.75);
+        goldMineralLeftServo.setPosition(0.5);
+    }
+
+    public void setGoldMineralServoOpenRight(){
+        goldMineralLeftServo.setPosition(0.6);
+        //goldMineralLeftServo.setPosition(0.1);
+        goldMineralLeftServo.setPosition(0.8);
     }
 
     //Function to set the power to all the drive motors.

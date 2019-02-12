@@ -21,6 +21,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
     private MineralVision vision;
 
     private ElapsedTime runtime = new ElapsedTime();
+    //private ElapsedTime time = new ElapsedTime();
 
     static double speedFactor = 1;  // Speed factor
     static double normalOrReversDrive = 1;  //
@@ -48,8 +49,23 @@ public class ApolloTeleopTerror extends LinearOpMode {
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
+        runtime.reset();
+
+
+
 
         while (opModeIsActive()) {
+
+            if(gamepad1.dpad_left){
+                robot.mineralPush.setPosition(0.2);
+            }else if(gamepad1.dpad_right){
+                robot.mineralPush.setPosition(0.8);
+            }
+            else if(gamepad1.dpad_up){
+                robot.mineralPush.setPosition(0);
+            }
+
+
             //Controllers drive sticks inputs
             double LeftStickX = gamepad1.left_stick_x * normalOrReversDrive;
             double LeftStickY = -gamepad1.left_stick_y * normalOrReversDrive;  // The joystick goes negative when pushed forwards, so negate it.
@@ -99,8 +115,6 @@ public class ApolloTeleopTerror extends LinearOpMode {
             }
 
 
-
-
             //Mineral graber control. Game pad 2, triggers.
             if (gamepad2.left_trigger < 0 && gamepad2.right_trigger < 0) {
                 robot.setMineralGrabServos(0);
@@ -127,7 +141,6 @@ public class ApolloTeleopTerror extends LinearOpMode {
             }
 
 
-
             // Mineral blocker control. Game pad 2 bumper.
             if (gamepad2.left_bumper) {
                 robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
@@ -137,11 +150,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
 
             // Game pad 1, buttons. Mineral box control.
-            if (gamepad1.a) {
-                robot.mineralBoxServo.setPosition(0.1);
-            } else if (gamepad1.x) {
+            if (gamepad1.y) {
                 robot.mineralBoxServo.setPosition(0.3);
-            } else if (gamepad1.y) {
+            } else if (gamepad1.a) {
                 robot.mineralBoxServo.setPosition(1);
             }
 
@@ -177,7 +188,33 @@ public class ApolloTeleopTerror extends LinearOpMode {
             } else {
                 robot.climbMotor.setPower(0);
             }
-
+/*
+            if(gamepad2.y){
+                robot.goldMineralLeftServo.setPosition(robot.goldMineralServoCloseLeft);
+                robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
+            }else if(gamepad2.a){
+                setGoldMineralServoOpenLeft();
+                //robot.setGoldMineralServoOpenLeft();
+                robot.setGoldMineralServoOpenRight();
+                //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
+                //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
+            }else if(gamepad2.x){
+                robot.goldMineralLeftServo.setPosition(robot.goldMineralServoCloseLeft);
+            }else if(gamepad2.b){
+                robot.goldMineralLeftServo.setPosition(robot.goldMineralServoCloseRight);
+            }
+*/
+            if(gamepad1.right_bumper) {
+                if (opModeIsActive() && (runtime.seconds() < 0.5)) {
+                    robot.mineralPassLeft.setPosition(robot.mineralPassLeftOpen);
+                    robot.mineralPassRight.setPosition(robot.mineralPassRightOpen);
+                } else if (opModeIsActive() && (runtime.seconds() < 1)) {
+                    robot.mineralPassLeft.setPosition(robot.mineralPassLeftClose);
+                    robot.mineralPassRight.setPosition(robot.mineralPassRightClose);
+                } else {
+                    runtime.reset();
+                }
+            }
 
 
             //if (gamepad1.b){
@@ -186,13 +223,38 @@ public class ApolloTeleopTerror extends LinearOpMode {
             //}
 
 
-            telemetry.addData("Sender Encoder lift", robot.lift.getCurrentPosition());
-            telemetry.addData("Sender Encoder push", robot.push.getCurrentPosition());
-            telemetry.addData("Sender Encoder climb", robot.climbMotor.getCurrentPosition());
+            telemetry.addData("Encoder lift", robot.lift.getCurrentPosition());
+            telemetry.addData("Encoder push", robot.push.getCurrentPosition());
+            telemetry.addData("Encoder climb", robot.climbMotor.getCurrentPosition());
+            telemetry.addData("Encoder Sender", robot.mineralSend.getCurrentPosition());
 
 
             telemetry.update();
         }
+
     }
+    // Function to wait an amount of seconds.
+    public void waitSeconds(double seconds)
+    {
+        runtime.reset();
+        while (opModeIsActive() && (runtime.seconds() < seconds)) { }
+    }
+/*
+    public void setGoldMineralServoOpenLeft(){
+        //if (robot.goldMineralLeftServo.getPosition()!=0.5) {
+            robot.goldMineralLeftServo.setPosition(0.2);
+            telemetry.addData("test", "1");
+            telemetry.update();
+            runtime.reset();
+            if (opModeIsActive() && (runtime.seconds() > 2)) { robot.goldMineralLeftServo.setPosition(0.5); }
+            telemetry.addData("test", "2");
+            telemetry.update();
+            //else {
+                //goldMineralLeftServo.setPosition(0.75);
+                robot.goldMineralLeftServo.setPosition(0.5);
+            //}
+        //}
+    }
+*/
 }
 
