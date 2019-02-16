@@ -71,7 +71,7 @@ public class HardwareApollo {
 
     // Mineral Blocker Positions
     static final double block = 1;
-    static final double dontBlock = 0.6;
+    static final double dontBlock = 0.2;
 
     // Mineral Blocker Positions
     static final double mineralBoxBlock = 0.35;
@@ -83,10 +83,10 @@ public class HardwareApollo {
     static final int MineralLimitY = 40 ;
 
     // Gold Mineral servo position to be open or closed.
-    static final double goldMineralServoOpenLeft = 0.5;
-    static final double goldMineralServoCloseLeft = 0.2;
-    static final double goldMineralServoOpenRight = 0.5;
-    static final double goldMineralServoCloseRight = 0.8;
+    static final double goldMineralServoOpenLeft = 0.3;
+    static final double goldMineralServoCloseLeft = 0;
+    static final double goldMineralServoOpenRight = 0.7;
+    static final double goldMineralServoCloseRight = 1;
 
     static final int climbOpenPosition = 17700;
 
@@ -99,11 +99,11 @@ public class HardwareApollo {
     static final int senderOpenEncoderLimitPoint = 9100; // Limit so the sender motors wont open to much, by encoder ticks.
     static final int senderCloseEncoderLimitPoint = 0; // Limit so the sender motors wont open to much, by encoder ticks.
     static final int liftOpenEncoderLimitPoint = 500;
-    static final int liftCloseEncoderLimitPoint = 20;
+    static final int liftCloseEncoderLimitPoint = 100;
     static final int pushOpenEncoderLimitPoint = 3700;
     static final int pushCloseEncoderLimitPoint = 0;
 
-    static final String Version = "1.2.11" ;
+    static final String Version = "1.2.15" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -184,11 +184,11 @@ public class HardwareApollo {
 
         // Set all servos positions
         blockMineralServo.setPosition(block);
-        mineralBoxServo.setPosition(1);
+        mineralBoxServo.setPosition(0);
         goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
         goldMineralRightServo.setPosition(goldMineralServoCloseRight);
-        //mineralPassLeft.setPosition(1);
-        //mineralPassRight.setPosition(1);
+        //mineralPassLeft.setPosition(0.2);
+        //mineralPassRight.setPosition(0.8);
 
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
