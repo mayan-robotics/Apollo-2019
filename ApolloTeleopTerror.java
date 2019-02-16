@@ -8,6 +8,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.corningrobotics.enderbots.endercv.CameraViewDisplay;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 /**
  * Apollo Teleop driving.
@@ -36,6 +40,8 @@ public class ApolloTeleopTerror extends LinearOpMode {
     int liftPosition = 0;
     int pushPosition = 0;
 
+    double senderPosition;
+
     double positionServo = 0;
 
 
@@ -49,6 +55,8 @@ public class ApolloTeleopTerror extends LinearOpMode {
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
+        robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
+        robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
         //runtime.reset();
 
 
@@ -117,9 +125,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
             if (gamepad2.left_trigger < 0 && gamepad2.right_trigger < 0) {
                 robot.setMineralGrabServos(0);
             }
-            if (gamepad2.left_trigger > 0) {
+            if (gamepad2.right_trigger > 0) {
                 robot.setMineralGrabServos(0.8);
-            } else if (gamepad2.right_trigger > 0) {
+            } else if (gamepad2.left_trigger > 0) {
                 robot.setMineralGrabServos(0.2);
             } else {
                 robot.setMineralGrabServos(0);
@@ -127,7 +135,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
 
             // Game Pad 1, triggers. Extrusions control.
-            robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (gamepad1.right_trigger > 0.1 )
             {   // Right trigger pushed, open extrusions.
                 robot.mineralSend.setPower(gamepad1.right_trigger);
@@ -135,7 +143,8 @@ public class ApolloTeleopTerror extends LinearOpMode {
             {   // Left trigger pushed, close extrusions.
                 robot.mineralSend.setPower(-gamepad1.left_trigger);
             } else {
-                    robot.mineralSend.setPower(0);
+                robot.mineralSend.setPower(0);
+                //robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
 
 
@@ -149,7 +158,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
             // Game pad 1, buttons. Mineral box control.
             if (gamepad1.y) {
-                robot.mineralBoxServo.setPosition(0.3);
+                robot.mineralBoxServo.setPosition(0.4);
             } else if (gamepad1.a) {
                 robot.mineralBoxServo.setPosition(1);
             }
@@ -226,6 +235,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
             telemetry.addData("Encoder push", robot.push.getCurrentPosition());
             telemetry.addData("Encoder climb", robot.climbMotor.getCurrentPosition());
             telemetry.addData("Encoder Sender", robot.mineralSend.getCurrentPosition());
+            telemetry.addData("gyro", GetGyroAngle());
 
 
             telemetry.update();
@@ -257,5 +267,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
         //}
     }
 */
+    public float GetGyroAngle(){
+        Orientation angles =robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return(AngleUnit.DEGREES.fromUnit(angles.angleUnit,angles.firstAngle));
+    }
 }
 
