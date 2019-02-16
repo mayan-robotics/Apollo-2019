@@ -195,7 +195,7 @@ public class ApolloTeleop extends LinearOpMode {
 
 
             climbPosition = robot.climbMotor.getCurrentPosition();
-
+/*
             if (gamepad2.dpad_up && gamepad2.dpad_down) {
                 robot.climbMotor.setPower(0);
             } else if (gamepad2.dpad_up && climbPosition < robot.climbOpenPosition) {
@@ -210,7 +210,7 @@ public class ApolloTeleop extends LinearOpMode {
                 robot.setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
-
+*/
 
             telemetry.addData("Sender Encoder lift", robot.lift.getCurrentPosition());
             telemetry.addData("Sender Encoder push", robot.push.getCurrentPosition());
