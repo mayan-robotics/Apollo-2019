@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 
 
 @Autonomous(name="Test: Phone Vision", group="Test")
+@Disabled
 public class VisionPhoneVuforiaTest extends LinearOpMode {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
