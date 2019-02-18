@@ -55,8 +55,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
         telemetry.addData("Apollo", "Ready");
         telemetry.update();
         waitForStart();
-        robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
-        robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
+        robot.goldMineralLeftServo.setPosition(1);
+        robot.goldMineralRightServo.setPosition(0);
+
         //runtime.reset();
 
 
@@ -70,6 +71,14 @@ public class ApolloTeleopTerror extends LinearOpMode {
             else if(gamepad1.dpad_up){
                 robot.mineralPush.setPosition(0);
             }
+
+            //if(gamepad1.right_bumper){
+            //    robot.mineralPassLeft.setPosition(0.2);
+            //    robot.mineralPassRight.setPosition(0.8);
+            //}else {
+            //    robot.mineralPassLeft.setPosition(1);
+            //    robot.mineralPassRight.setPosition(0);
+            //}
 
 
             //Controllers drive sticks inputs
