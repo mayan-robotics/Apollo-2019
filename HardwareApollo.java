@@ -88,7 +88,7 @@ public class HardwareApollo {
     static final double goldMineralServoOpenRight = 0.7;
     static final double goldMineralServoCloseRight = 1;
 
-    static final int climbOpenPosition = 17700;
+    static final int climbOpenPosition = 34220;
 
     static final double mineralPassLeftOpen = 0.5;
     static final double mineralPassRightOpen = 0.1;
@@ -103,7 +103,7 @@ public class HardwareApollo {
     static final int pushOpenEncoderLimitPoint = 3700;
     static final int pushCloseEncoderLimitPoint = 0;
 
-    static final String Version = "1.2.15" ;
+    static final String Version = "1.2.18" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
