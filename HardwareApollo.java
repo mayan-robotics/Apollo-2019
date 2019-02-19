@@ -88,7 +88,7 @@ public class HardwareApollo {
     static final double goldMineralServoOpenRight = 0.7;
     static final double goldMineralServoCloseRight = 1;
 
-    static final int climbOpenPosition = 34220;
+    static final int climbOpenPosition = 37220;
 
     static final double mineralPassLeftOpen = 0.5;
     static final double mineralPassRightOpen = 0.1;
@@ -182,13 +182,6 @@ public class HardwareApollo {
         mineralPush.setPosition(0);
 
 
-        // Set all servos positions
-        blockMineralServo.setPosition(block);
-        mineralBoxServo.setPosition(0);
-        goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
-        goldMineralRightServo.setPosition(goldMineralServoCloseRight);
-        //mineralPassLeft.setPosition(0.2);
-        //mineralPassRight.setPosition(0.8);
 
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -196,6 +189,15 @@ public class HardwareApollo {
         // Set all motors to run without encoders.
         setAllMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+    }
+    public void InitServoes(){
+        // Set all servos positions
+        blockMineralServo.setPosition(block);
+        mineralBoxServo.setPosition(0);
+        goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
+        goldMineralRightServo.setPosition(goldMineralServoCloseRight);
+        //mineralPassLeft.setPosition(0.2);
+        //mineralPassRight.setPosition(0.8);
     }
 
     public void setGoldMineralServoOpenLeft(){
