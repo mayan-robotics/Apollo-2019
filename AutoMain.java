@@ -81,6 +81,7 @@ public abstract class AutoMain extends LinearOpMode
     public void apolloInit() {
         //Hardware init
         robot.init(hardwareMap);
+        robot.InitServoes();
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.imuRestart();
         gyroDegrees=0;
@@ -99,7 +100,7 @@ public abstract class AutoMain extends LinearOpMode
         //waitSeconds(999);
         //turnAwayFromLender();
         //openLeftMineralServo();
-        //openRightMineralServo();
+        //openLeftMineralServo();
         //encoderSideWaysDrive(1,20);
         //waitSeconds(1);
         //gyroDrive(0.8, 100,angelForGyro(0));
@@ -159,8 +160,9 @@ public abstract class AutoMain extends LinearOpMode
 
         turnAwayFromLender();
 
-        getStartGoldPositins = GoldPosition.RIGHT;
-        encoderSideWaysDrive(1, 10);
+        //getStartGoldPositins = GoldPosition.RIGHT;
+
+        //encoderSideWaysDrive(1, 10);
 
         //robot.goldMineralLeftServo.setPosition(0.3);
        // robot.goldMineralRightServo.setPosition(0.6);
@@ -168,7 +170,7 @@ public abstract class AutoMain extends LinearOpMode
         //waitSeconds(2);
         switch (getStartGoldPositins){
             case LEFT:
-
+                //robot.goldMineralLeftServo.setPosition(1);
                 robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
                 //robot.goldMineralLeftServo.setPosition(0.3);
 
@@ -195,8 +197,17 @@ public abstract class AutoMain extends LinearOpMode
                 //driveByGyro(1,40,angelForGyro(0));
                 //encoderSideWaysDrive(1, 95);
                break;
+            case MIDDLE:
+                robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
+                robot.goldMineralRightServo.setPosition(goldMineralServoCloseRight);
+                //encoderSideWaysDrive(1, 10);
+                //openRightMineralServo();
+                //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpen);
+                //driveByGyro(1,40,angelForGyro(0));
+                //encoderSideWaysDrive(1, 95);
+                break;
         }
-        waitSeconds(0.5);
+        //waitSeconds(0.5);
 
 
         //gyroDrive(1,50, angelForGyro(0));
@@ -219,15 +230,16 @@ public abstract class AutoMain extends LinearOpMode
         {
             if(getStartGoldPositins==GoldPosition.MIDDLE) {
                 gyroDrive(1, 130, angelForGyro(0));
-                encoderLift(1, 650);
+                encoderLift(1, 690);
                 robot.setMineralGrabServos(0.2);
-                waitSeconds(0.5);
+                encoderLift(1, 690);
+                //waitSeconds(0.5);
                 robot.setMineralGrabServos(0);
                 //encoderLift(1,600);
-                gyroDrive(1, -40, angelForGyro(0));
-                encoderLift(1, 680);
+                gyroDrive(1, -25, angelForGyro(0));
+                //encoderLift(1, 690);
                 gyroDrive(1, -100, angelForGyro(0));
-                encoderLift(1, 550);
+                //encoderLift(1, 550);
                 gyroDrive(1, 40, angelForGyro(0));
 
                 //encoderLift(1, 200);
@@ -245,31 +257,39 @@ public abstract class AutoMain extends LinearOpMode
                 //        break;
                 //}
                 //robot.setMineralGrabServos(0.2);
-                encoderLift(1, 650);
+
+                encoderLift(1, 500);
                 robot.setMineralGrabServos(0.2);
-                waitSeconds(0.5);
-                robot.setMineralGrabServos(0);
                 robot.goldMineralLeftServo.setPosition(0.3);
                 robot.goldMineralRightServo.setPosition(0.7);
-                encoderLift(1, 550);
+                //encoderLift(1, 550);
+
+                //waitSeconds(0.5);
+                robot.setMineralGrabServos(0);
+
                 gyroDrive(1, -100, angelForGyro(0));
 
             }
 
-            turnByGyro(0.6, angelForGyro(-90 * TURNRIGHTORLEFT));
+            turnByGyro(0.6, angelForGyro(-95 * TURNRIGHTORLEFT));
             //if(getStartGoldPositins==GoldPosition.LEFT) {
                 //robot.goldMineralRightServo.setPosition(0.6);
                 //turnByGyro(0.6, angelForGyro(-90 * TURNRIGHTORLEFT));
                 //robot.goldMineralRightServo.setPosition(0.15);
               //  //openRightMineralServo();
             //}
-            gyroDrive(1, 200, angelForGyro(-5 * TURNRIGHTORLEFT));
+
+            //if(TURNRIGHTORLEFT==1 && getStartGoldPositins==GoldPosition.LEFT){
+              //  openRightMineralServo();
+            //}
+
+            gyroDrive(1, 250, angelForGyro(-5 * TURNRIGHTORLEFT));
 
             //gyroTurn(0.7, angelForGyro(-28 * TURNRIGHTORLEFT));
             //gyroDrive(1, 50, angelForGyro(0));
 
             //encoderSideWaysDrive(1, -20* TURNRIGHTORLEFT);
-            encoderLift(1, 680);
+            encoderLift(1, 650);
 
 
 
@@ -288,11 +308,12 @@ public abstract class AutoMain extends LinearOpMode
         robot.goldMineralLeftServo.setPosition(0.6);
         waitSeconds(2);
         robot.goldMineralLeftServo.setPosition(1);
+
         //robot.goldMineralRightServo.setPosition(0.2);
         //waitSeconds(1);
 
+        encoderPush(1,1300);
         encoderLift(1,260);
-        encoderPush(1,1100);
         //waitSeconds(1);
 
         robot.mineralBoxServo.setPosition(1);
@@ -310,7 +331,7 @@ public abstract class AutoMain extends LinearOpMode
     public void openLeftMineralServo(){
         robot.goldMineralLeftServo.setPosition(0.5);
         waitSeconds(0.5);
-        robot.goldMineralLeftServo.setPosition(1);
+        robot.goldMineralLeftServo.setPosition(0.95);
     }
 
     public void openRightMineralServo(){
@@ -410,13 +431,13 @@ public abstract class AutoMain extends LinearOpMode
     public GoldPosition getRealLocation(/* GoldPosition vision */){
         switch ((GetGoldLocation())){
             case LEFT:
-                return GoldPosition.MIDDLE;
+                return GoldPosition.LEFT;
             case RIGHT:
-                return GoldPosition.RIGHT;
+                return GoldPosition.MIDDLE;
             case MIDDLE:
                 return GoldPosition.MIDDLE;
             case OUTOFRANGE:
-                return GoldPosition.LEFT;
+                return GoldPosition.RIGHT;
         }
         return null;
     }
