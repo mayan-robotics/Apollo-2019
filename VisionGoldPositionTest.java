@@ -144,13 +144,13 @@ public class VisionGoldPositionTest extends OpMode {
     public GoldPosition getLocation() {
         switch ((GetGoldLocation())){
             case LEFT:
-                return GoldPosition.MIDDLE;
+                return GoldPosition.LEFT;
             case RIGHT:
-                return GoldPosition.RIGHT;
+                return GoldPosition.MIDDLE;
             case MIDDLE:
                 return GoldPosition.MIDDLE;
             case OUTOFRANGE:
-                return GoldPosition.LEFT;
+                return GoldPosition.RIGHT;
         }
         return null;
     }
