@@ -81,7 +81,6 @@ public abstract class AutoMain extends LinearOpMode
     public void apolloInit() {
         //Hardware init
         robot.init(hardwareMap);
-        robot.InitServoes();
         robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.imuRestart();
         gyroDegrees=0;
@@ -96,9 +95,44 @@ public abstract class AutoMain extends LinearOpMode
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
+<<<<<<< HEAD
         startRobotInit();
         robotGrabMineral();
         waitSeconds(999);
+=======
+        //robot.goldMineralRightServo.setPosition(0.7);
+        //waitSeconds(999);
+        //turnAwayFromLender();
+        //openLeftMineralServo();
+        //openRightMineralServo();
+        //encoderSideWaysDrive(1,20);
+        //waitSeconds(1);
+        //gyroDrive(0.8, 100,angelForGyro(0));
+        //waitSeconds(999);
+        //robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
+        //robot.goldMineralRightServo.setPosition(goldMineralServoCloseRight);
+        //waitSeconds(999);
+        //gyroDrive(1, 130, angelForGyro(0));
+        //encoderSideWaysDrive(1,110);//,0);
+        //waitSeconds(1);
+        //encoderSideWaysDrive(1,-110);//0);
+        //waitSeconds(1);
+        //openRightMineralServo();
+        //waitSeconds(999);
+        //startRobotInit();
+        //waitSeconds(999);
+        //openLeftMineralServo();
+        //waitSeconds(2);
+        //openRightMineralServo();
+        //waitSeconds(999);
+        //gyroDriveSideWays(1,-20, angelForGyro(0));
+        //waitSeconds(999);
+        //encoderMineralSend(1,7500);
+        //robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //waitSecondsExtrusions(5,7800);
+
+        //waitSeconds(9999);
+>>>>>>> parent of 904bc06... Main Autonomus Update
 
 
         encoderClimbVision(1, robot.climbOpenPosition);
@@ -109,10 +143,18 @@ public abstract class AutoMain extends LinearOpMode
 
         turnAwayFromLender();
 
+<<<<<<< HEAD
+=======
+        getStartGoldPositins = GoldPosition.RIGHT;
+        encoderSideWaysDrive(1, 10);
+
+        //robot.goldMineralLeftServo.setPosition(0.3);
+       // robot.goldMineralRightServo.setPosition(0.6);
+>>>>>>> parent of 904bc06... Main Autonomus Update
 
         switch (getStartGoldPositins){
             case LEFT:
-                //robot.goldMineralLeftServo.setPosition(1);
+
                 robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
 
                 break;
@@ -120,12 +162,17 @@ public abstract class AutoMain extends LinearOpMode
                 robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
 
                break;
+<<<<<<< HEAD
             case MIDDLE:
                 robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
                 robot.goldMineralRightServo.setPosition(goldMineralServoCloseRight);
 
                 break;
         }
+=======
+        }
+        waitSeconds(0.5);
+>>>>>>> parent of 904bc06... Main Autonomus Update
 
 
         /** If Crater **/
@@ -155,6 +202,7 @@ public abstract class AutoMain extends LinearOpMode
         {
             if(getStartGoldPositins==GoldPosition.MIDDLE) {
                 gyroDrive(1, 130, angelForGyro(0));
+<<<<<<< HEAD
                 //encoderLift(1, 550);
 
                 encoderLift(1, 675);
@@ -168,47 +216,87 @@ public abstract class AutoMain extends LinearOpMode
                 //encoderLift(1, 550);
                 gyroDrive(1, 28, angelForGyro(0));
                 encoderLift(1, 550);
+=======
+                encoderLift(1, 650);
+                robot.setMineralGrabServos(0.2);
+                waitSeconds(0.5);
+                robot.setMineralGrabServos(0);
+                //encoderLift(1,600);
+                gyroDrive(1, -40, angelForGyro(0));
+                encoderLift(1, 680);
+                gyroDrive(1, -100, angelForGyro(0));
+                encoderLift(1, 550);
+                gyroDrive(1, 40, angelForGyro(0));
+>>>>>>> parent of 904bc06... Main Autonomus Update
 
                 //encoderLift(1, 200);
             }else
             {
                 gyroDrive(1, 130, angelForGyro(0));
 
+<<<<<<< HEAD
                 encoderLift(1, 500);
+=======
+
+                //switch (getStartGoldPositins){
+                //    case LEFT:
+                //        encoderSideWaysDrive(1, 10);
+                //        break;
+                //    case RIGHT:
+                //        encoderSideWaysDrive(1, -10);
+                //        break;
+                //}
+                //robot.setMineralGrabServos(0.2);
+                encoderLift(1, 650);
+>>>>>>> parent of 904bc06... Main Autonomus Update
                 robot.setMineralGrabServos(0.2);
+                waitSeconds(0.5);
+                robot.setMineralGrabServos(0);
                 robot.goldMineralLeftServo.setPosition(0.3);
                 robot.goldMineralRightServo.setPosition(0.7);
+<<<<<<< HEAD
                 waitSeconds(0.5);
                 //encoderLift(1, 550);
 
                 //waitSeconds(0.5);
                 robot.setMineralGrabServos(0);
 
+=======
+                encoderLift(1, 550);
+>>>>>>> parent of 904bc06... Main Autonomus Update
                 gyroDrive(1, -100, angelForGyro(0));
 
             }
 
+<<<<<<< HEAD
             turnByGyro(0.6, angelForGyro(-95 * TURNRIGHTORLEFT));
             robot.goldMineralLeftServo.setPosition(robot.goldMineralServoCloseLeft);
             robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
+=======
+            turnByGyro(0.6, angelForGyro(-90 * TURNRIGHTORLEFT));
+>>>>>>> parent of 904bc06... Main Autonomus Update
             //if(getStartGoldPositins==GoldPosition.LEFT) {
                 //robot.goldMineralRightServo.setPosition(0.6);
                 //turnByGyro(0.6, angelForGyro(-90 * TURNRIGHTORLEFT));
                 //robot.goldMineralRightServo.setPosition(0.15);
               //  //openRightMineralServo();
             //}
+<<<<<<< HEAD
 
             //if(TURNRIGHTORLEFT==1 && getStartGoldPositins==GoldPosition.LEFT){
               //  openRightMineralServo();
             //}
 
             gyroDrive(1, 250, angelForGyro(7 /* * TURNRIGHTORLEFT*/));
+=======
+            gyroDrive(1, 200, angelForGyro(-5 * TURNRIGHTORLEFT));
+>>>>>>> parent of 904bc06... Main Autonomus Update
 
             //gyroTurn(0.7, angelForGyro(-28 * TURNRIGHTORLEFT));
             //gyroDrive(1, 50, angelForGyro(0));
 
             //encoderSideWaysDrive(1, -20* TURNRIGHTORLEFT);
-            encoderLift(1, 650);
+            encoderLift(1, 680);
 
             robot.setMineralGrabServos(0.8);
 
@@ -229,12 +317,11 @@ public abstract class AutoMain extends LinearOpMode
         robot.goldMineralLeftServo.setPosition(0.6);
         waitSeconds(2);
         robot.goldMineralLeftServo.setPosition(1);
-
         //robot.goldMineralRightServo.setPosition(0.2);
         //waitSeconds(1);
 
-        encoderPush(1,1300);
         encoderLift(1,260);
+        encoderPush(1,1100);
         //waitSeconds(1);
 
         robot.mineralBoxServo.setPosition(1);
@@ -255,7 +342,7 @@ public abstract class AutoMain extends LinearOpMode
     public void openLeftMineralServo(){
         robot.goldMineralLeftServo.setPosition(0.5);
         waitSeconds(0.5);
-        robot.goldMineralLeftServo.setPosition(0.95);
+        robot.goldMineralLeftServo.setPosition(1);
     }
 
     public void openRightMineralServo(){
@@ -351,13 +438,13 @@ public abstract class AutoMain extends LinearOpMode
     public GoldPosition getRealLocation(/* GoldPosition vision */){
         switch ((GetGoldLocation())){
             case LEFT:
-                return GoldPosition.LEFT;
-            case RIGHT:
                 return GoldPosition.MIDDLE;
+            case RIGHT:
+                return GoldPosition.RIGHT;
             case MIDDLE:
                 return GoldPosition.MIDDLE;
             case OUTOFRANGE:
-                return GoldPosition.RIGHT;
+                return GoldPosition.LEFT;
         }
         return null;
     }
