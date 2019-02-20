@@ -96,133 +96,58 @@ public abstract class AutoMain extends LinearOpMode
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
-        //robot.goldMineralRightServo.setPosition(0.7);
-        //waitSeconds(999);
-        //turnAwayFromLender();
-        //openLeftMineralServo();
-        //openLeftMineralServo();
-        //encoderSideWaysDrive(1,20);
-        //waitSeconds(1);
-        //gyroDrive(0.8, 100,angelForGyro(0));
-        //waitSeconds(999);
-        //robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
-        //robot.goldMineralRightServo.setPosition(goldMineralServoCloseRight);
-        //waitSeconds(999);
-        //gyroDrive(1, 130, angelForGyro(0));
-        //encoderSideWaysDrive(1,110);//,0);
-        //waitSeconds(1);
-        //encoderSideWaysDrive(1,-110);//0);
-        //waitSeconds(1);
-        //openRightMineralServo();
-        //waitSeconds(999);
-        //startRobotInit();
-        //waitSeconds(999);
-        //openLeftMineralServo();
-        //waitSeconds(2);
-        //openRightMineralServo();
-        //waitSeconds(999);
-        //gyroDriveSideWays(1,-20, angelForGyro(0));
-        //waitSeconds(999);
-        //encoderMineralSend(1,7500);
-        //robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //waitSecondsExtrusions(5,7800);
+        startRobotInit();
+        robotGrabMineral();
+        waitSeconds(999);
 
-        //waitSeconds(9999);
-
-        //startRobotInit();
-        ////waitSeconds(2);
-        //gyroDrive(1,50,angelForGyro(0));
-        //robotGrabMineral();
-        //waitSeconds(999);
-//
-        //openRightMineralServo();
-        //waitSeconds(999);
-//
-        //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
-        //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
-        //waitSeconds(0.5);
-        ////robot.goldMineralLeftServo.setPosition(0.5);
-        ////robot.goldMineralRightServo.setPosition(0.5);
-        ////waitSeconds(2);
-        //robot.goldMineralLeftServo.setPosition(0.8);
-        //robot.goldMineralRightServo.setPosition(0.2);
-        //waitSeconds(999);
-        //robotGrabMineral();
-//
-        //waitSeconds(999);
 
         encoderClimbVision(1, robot.climbOpenPosition);
 
         //startRobotInit();
+        robot.goldMineralRightServo.setPosition(0);
 
-        openRightMineralServo();
-        robot.mineralPassRight.setPosition(0);
 
         turnAwayFromLender();
 
-        //getStartGoldPositins = GoldPosition.RIGHT;
 
-        //encoderSideWaysDrive(1, 10);
-
-        //robot.goldMineralLeftServo.setPosition(0.3);
-       // robot.goldMineralRightServo.setPosition(0.6);
-
-        //waitSeconds(2);
         switch (getStartGoldPositins){
             case LEFT:
                 //robot.goldMineralLeftServo.setPosition(1);
                 robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
-                //robot.goldMineralLeftServo.setPosition(0.3);
 
-                //openLeftMineralServo();
-                //robot.mineralPassRight.setPosition(0.6);
-
-                //encoderSideWaysDrive(1, -60);
-                //gyroDrive(1,20,angelForGyro(0));
-                //gyroDrive(1,-20,angelForGyro(0));
-
-                //encoderSideWaysDrive(1, 60);
-
-
-                //openLeftMineralServo();
-                //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpen);
-                //driveByGyro(1,40,angelForGyro(0));
-                //encoderSideWaysDrive(1, -95);
                 break;
             case RIGHT:
                 robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
-                //encoderSideWaysDrive(1, 10);
-                //openRightMineralServo();
-                //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpen);
-                //driveByGyro(1,40,angelForGyro(0));
-                //encoderSideWaysDrive(1, 95);
+
                break;
             case MIDDLE:
                 robot.goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
                 robot.goldMineralRightServo.setPosition(goldMineralServoCloseRight);
-                //encoderSideWaysDrive(1, 10);
-                //openRightMineralServo();
-                //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpen);
-                //driveByGyro(1,40,angelForGyro(0));
-                //encoderSideWaysDrive(1, 95);
+
                 break;
         }
-        //waitSeconds(0.5);
 
-
-        //gyroDrive(1,50, angelForGyro(0));
-        //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoClose);
-        //robot.goldMineralRightServo.setPosition(robot.goldMineralServoClose);
-        //gyroDrive(1,50, angelForGyro(0));
 
         /** If Crater **/
         if(isCrater)
         {
-            gyroDrive(1,115,angelForGyro(0));
-            robotGrabMineral();
-            //gyroDriveSideWays(1,0.5,angelForGyro(0));
-            robotGrabMineral();
+            if(getStartGoldPositins==GoldPosition.MIDDLE){
+                encoderLift(1, 675);
+                robot.setMineralGrabServos(0.8);
+                gyroDrive(1,100,angelForGyro(0));
+                robot.setMineralGrabServos(0);
+                encoderLift(1, 550);
+                gyroDrive(1,15,angelForGyro(0));
+                encoderLift(1, 675);
 
+            }
+            gyroDrive(1,115,angelForGyro(0));
+            robot.goldMineralLeftServo.setPosition(0.3);
+            robot.goldMineralRightServo.setPosition(0.7);
+            //robotGrabMineral();
+
+            //gyroDriveSideWays(1,0.5,angelForGyro(0));
+            //robotGrabMineral();
 
         }
         /** If Depot **/
@@ -230,38 +155,30 @@ public abstract class AutoMain extends LinearOpMode
         {
             if(getStartGoldPositins==GoldPosition.MIDDLE) {
                 gyroDrive(1, 130, angelForGyro(0));
-                encoderLift(1, 690);
+                //encoderLift(1, 550);
+
+                encoderLift(1, 675);
                 robot.setMineralGrabServos(0.2);
-                encoderLift(1, 690);
-                //waitSeconds(0.5);
-                robot.setMineralGrabServos(0);
-                //encoderLift(1,600);
+
                 gyroDrive(1, -25, angelForGyro(0));
+                robot.setMineralGrabServos(0);
                 //encoderLift(1, 690);
                 gyroDrive(1, -100, angelForGyro(0));
+                encoderLift(1, 665);
                 //encoderLift(1, 550);
-                gyroDrive(1, 40, angelForGyro(0));
+                gyroDrive(1, 28, angelForGyro(0));
+                encoderLift(1, 550);
 
                 //encoderLift(1, 200);
             }else
             {
                 gyroDrive(1, 130, angelForGyro(0));
 
-
-                //switch (getStartGoldPositins){
-                //    case LEFT:
-                //        encoderSideWaysDrive(1, 10);
-                //        break;
-                //    case RIGHT:
-                //        encoderSideWaysDrive(1, -10);
-                //        break;
-                //}
-                //robot.setMineralGrabServos(0.2);
-
                 encoderLift(1, 500);
                 robot.setMineralGrabServos(0.2);
                 robot.goldMineralLeftServo.setPosition(0.3);
                 robot.goldMineralRightServo.setPosition(0.7);
+                waitSeconds(0.5);
                 //encoderLift(1, 550);
 
                 //waitSeconds(0.5);
@@ -272,6 +189,8 @@ public abstract class AutoMain extends LinearOpMode
             }
 
             turnByGyro(0.6, angelForGyro(-95 * TURNRIGHTORLEFT));
+            robot.goldMineralLeftServo.setPosition(robot.goldMineralServoCloseLeft);
+            robot.goldMineralRightServo.setPosition(robot.goldMineralServoCloseRight);
             //if(getStartGoldPositins==GoldPosition.LEFT) {
                 //robot.goldMineralRightServo.setPosition(0.6);
                 //turnByGyro(0.6, angelForGyro(-90 * TURNRIGHTORLEFT));
@@ -283,13 +202,15 @@ public abstract class AutoMain extends LinearOpMode
               //  openRightMineralServo();
             //}
 
-            gyroDrive(1, 250, angelForGyro(-5 * TURNRIGHTORLEFT));
+            gyroDrive(1, 250, angelForGyro(7 /* * TURNRIGHTORLEFT*/));
 
             //gyroTurn(0.7, angelForGyro(-28 * TURNRIGHTORLEFT));
             //gyroDrive(1, 50, angelForGyro(0));
 
             //encoderSideWaysDrive(1, -20* TURNRIGHTORLEFT);
             encoderLift(1, 650);
+
+            robot.setMineralGrabServos(0.8);
 
 
 
@@ -323,6 +244,9 @@ public abstract class AutoMain extends LinearOpMode
         //robot.goldMineralLeftServo.setPosition(robot.goldMineralServoOpenLeft);
         encoderMineralSend(1,50);
         encoderMineralSend(1,0);
+
+        robot.mineralPassRight.setPosition(0);
+        openRightMineralServo();
         //robot.goldMineralRightServo.setPosition(robot.goldMineralServoOpenRight);
 
     }
@@ -336,8 +260,6 @@ public abstract class AutoMain extends LinearOpMode
 
     public void openRightMineralServo(){
         robot.goldMineralRightServo.setPosition(0.6);
-        //waitSeconds(0.3);
-        //robot.goldMineralRightServo.setPosition(0.7);
         waitSeconds(0.5);
         robot.goldMineralRightServo.setPosition(0);
     }
@@ -351,9 +273,7 @@ public abstract class AutoMain extends LinearOpMode
         encoderLift(1,680);
 
         robot.setMineralGrabServos(0.8);
-        //encoderPush(1,2500);
-        //gyroDriveSideWays(1,2,angelForGyro(0));
-        //gyroDriveSideWays(1,-2,angelForGyro(0));
+
         encoderPush(1,4000);
         encoderPush(1,2000);
         robot.setMineralGrabServos(0);

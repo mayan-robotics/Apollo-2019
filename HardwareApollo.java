@@ -103,7 +103,7 @@ public class HardwareApollo {
     static final int pushOpenEncoderLimitPoint = 3700;
     static final int pushCloseEncoderLimitPoint = 0;
 
-    static final String Version = "1.2.18" ;
+    static final String Version = "1.2.20" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
