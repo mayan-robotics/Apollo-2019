@@ -167,7 +167,7 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
             // Game pad 1, buttons. Mineral box control.
             if (gamepad1.y) {
-                robot.mineralBoxServo.setPosition(0.4);
+                robot.mineralBoxServo.setPosition(0.5);
             } else if (gamepad1.a) {
                 robot.mineralBoxServo.setPosition(1);
             }
