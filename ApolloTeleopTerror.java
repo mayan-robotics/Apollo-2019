@@ -57,29 +57,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
         waitForStart();
         robot.goldMineralLeftServo.setPosition(0.6);
         robot.goldMineralRightServo.setPosition(0.4);
-
-        //runtime.reset();
-
+        robot.mineralBoxServo.setPosition(robot.mineralBoxServoClose);
 
         while (opModeIsActive()) {
-
-            if(gamepad1.dpad_left){
-                robot.mineralPush.setPosition(0.2);
-            }else if(gamepad1.dpad_right){
-                robot.mineralPush.setPosition(0.8);
-            }
-            else if(gamepad1.dpad_up){
-                robot.mineralPush.setPosition(0);
-            }
-
-            if(gamepad1.right_bumper){
-                robot.mineralPassLeft.setPosition(0.2);
-                robot.mineralPassRight.setPosition(0.8);
-            }else {
-                robot.mineralPassLeft.setPosition(1);
-                robot.mineralPassRight.setPosition(0);
-            }
-
 
             //Controllers drive sticks inputs
             double LeftStickX = gamepad1.left_stick_x * normalOrReversDrive;
@@ -130,6 +110,27 @@ public class ApolloTeleopTerror extends LinearOpMode {
             }
 
 
+
+            // mineral push, game pad 1 dpad.
+            if(gamepad1.dpad_left){
+                robot.mineralPush.setPosition(0.2);
+            }else if(gamepad1.dpad_right){
+                robot.mineralPush.setPosition(0.8);
+            }
+            else if(gamepad1.dpad_up){
+                robot.mineralPush.setPosition(0);
+            }
+
+            // mineral pass servos, game pad 1 right bumper.
+            if(gamepad1.right_bumper){
+                robot.mineralPassLeft.setPosition(0.2);
+                robot.mineralPassRight.setPosition(0.8);
+            }else {
+                robot.mineralPassLeft.setPosition(1);
+                robot.mineralPassRight.setPosition(0);
+            }
+
+
             //Mineral graber control. Game pad 2, triggers.
             if (gamepad2.left_trigger < 0 && gamepad2.right_trigger < 0) {
                 robot.setMineralGrabServos(0);
@@ -147,7 +148,8 @@ public class ApolloTeleopTerror extends LinearOpMode {
             //robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             if (gamepad1.right_trigger > 0.1 )
             {   // Right trigger pushed, open extrusions.
-                robot.mineralSend.setPower(gamepad1.right_trigger);
+                robot.mineralSend.setPower(gamepad1.right_trigger*speedFactor);
+
             } else if (gamepad1.left_trigger > 0.1)
             {   // Left trigger pushed, close extrusions.
                 robot.mineralSend.setPower(-gamepad1.left_trigger);
@@ -167,9 +169,9 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
             // Game pad 1, buttons. Mineral box control.
             if (gamepad1.y) {
-                robot.mineralBoxServo.setPosition(0.5);
+                robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
             } else if (gamepad1.a) {
-                robot.mineralBoxServo.setPosition(1);
+                robot.mineralBoxServo.setPosition(robot.mineralBoxServoClose);
             }
 
 

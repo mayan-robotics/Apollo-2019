@@ -83,7 +83,7 @@ public class VisionGoldPositionTest extends OpMode {
             telemetry.addData("Gold Mineral Position", getLocation());
             telemetry.update();
         }catch (Exception e){
-            telemetry.addData("ERROR","HELL");
+            telemetry.addData("ERROR","error");
             telemetry.update();
         }
     }
@@ -101,7 +101,6 @@ public class VisionGoldPositionTest extends OpMode {
 
         contoursGold.clear();
         vision.getGoldContours(contoursGold);
-
 
 
             if ((vision.goldMineralFound() == true) && (contoursGold != null)) {

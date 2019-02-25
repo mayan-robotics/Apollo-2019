@@ -2,18 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 /**
  * Apollo 2019
@@ -22,34 +14,29 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 public class HardwareApollo {
     /* Public OpMode members. */
+
+    // Dc motors.
     public DcMotor  driveLeftFront = null;
     public DcMotor  driveLeftBack = null;
     public DcMotor  driveRightFront = null;
     public DcMotor  driveRightBack = null;
-
-    //public DcMotor  mineralGrab = null;
     public DcMotor  lift = null;
     public DcMotor  push = null;
     public DcMotor  mineralSend = null;
     public DcMotor  climbMotor = null;
 
+    //Servos
     public Servo    blockMineralServo = null;
     public Servo    mineralBoxServo = null;
-
     public Servo    mineralGrabRight = null;
     public Servo    mineralGrabLeft = null;
-
     public Servo    goldMineralLeftServo = null;
     public Servo    goldMineralRightServo = null;
-
     public Servo    mineralPassLeft = null;
     public Servo    mineralPassRight = null;
-
     public Servo    mineralPush = null;
 
     BNO055IMU imu;
-
-    DigitalChannel touchPusher ;
 
     //Declaration of the drive motor types.
     public enum DRIVE_MOTOR_TYPES {
@@ -68,42 +55,32 @@ public class HardwareApollo {
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
-
     // Mineral Blocker Positions
     static final double block = 1;
     static final double dontBlock = 0.2;
 
-    // Mineral Blocker Positions
-    static final double mineralBoxBlock = 0.35;
-    static final double mineralBoxBlockDontBlock = 0.23;
-
     // Gold mineral X positions limits for camera.
     static final int MineralMiddleLimitLeft = 650 ;
     static final int MineralMiddleLimitRight = 600 ;
-    static final int MineralLimitY = 40 ;
 
     // Gold Mineral servo position to be open or closed.
-    static final double goldMineralServoOpenLeft = 0.3;
     static final double goldMineralServoCloseLeft = 0;
-    static final double goldMineralServoOpenRight = 0.7;
     static final double goldMineralServoCloseRight = 1;
 
+    // climb open position.
     static final int climbOpenPosition = 37220;
 
-    static final double mineralPassLeftOpen = 0.5;
-    static final double mineralPassRightOpen = 0.1;
-    static final double mineralPassLeftClose = 0.7;
-    static final double mineralPassRightClose = 0.4;
+    // mineral pass positions
+    static final double mineralPassLeftOpen = 0.2;
+    static final double mineralPassRightOpen = 0.8;
+    static final double mineralPassLeftClose = 1;
+    static final double mineralPassRightClose = 0;
 
+    // mineral box positions.
+    static final double mineralBoxServoOpen = 0.65 ;
+    static final double mineralBoxServoClose = 0.9852 ;
 
-    static final int senderOpenEncoderLimitPoint = 9100; // Limit so the sender motors wont open to much, by encoder ticks.
-    static final int senderCloseEncoderLimitPoint = 0; // Limit so the sender motors wont open to much, by encoder ticks.
-    static final int liftOpenEncoderLimitPoint = 500;
-    static final int liftCloseEncoderLimitPoint = 100;
-    static final int pushOpenEncoderLimitPoint = 3700;
-    static final int pushCloseEncoderLimitPoint = 0;
-
-    static final String Version = "1.2.21" ;
+    static final String Version = "1.2.23" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -138,11 +115,6 @@ public class HardwareApollo {
         mineralPassLeft = hwMap.get(Servo.class, "mineralPassLeft");
         mineralPassRight = hwMap.get(Servo.class, "mineralPassRight");
         mineralPush = hwMap.get(Servo.class, "mineralPush");
-
-        // Define and initialize ALL sensors
-        // Touch sensor
-        touchPusher = hwMap.get(DigitalChannel.class, "touch" );
-        touchPusher.setMode(DigitalChannel.Mode.INPUT );
 
         // Imu
         imu = hwMap.get(BNO055IMU.class, "imu");
@@ -181,8 +153,6 @@ public class HardwareApollo {
 
         mineralPush.setPosition(0);
 
-
-
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -190,26 +160,15 @@ public class HardwareApollo {
         setAllMotorsMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
+
+    // Function set positions for the servos.
     public void InitServoes(){
         // Set all servos positions
         blockMineralServo.setPosition(block);
         mineralBoxServo.setPosition(0);
         goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
         goldMineralRightServo.setPosition(goldMineralServoCloseRight);
-        //mineralPassLeft.setPosition(0.2);
-        //mineralPassRight.setPosition(0.8);
-    }
 
-    public void setGoldMineralServoOpenLeft(){
-        goldMineralLeftServo.setPosition(0.3);
-        //goldMineralLeftServo.setPosition(0.75);
-        goldMineralLeftServo.setPosition(0.5);
-    }
-
-    public void setGoldMineralServoOpenRight(){
-        goldMineralLeftServo.setPosition(0.6);
-        //goldMineralLeftServo.setPosition(0.1);
-        goldMineralLeftServo.setPosition(0.8);
     }
 
     //Function to set the power to all the drive motors.
@@ -341,6 +300,7 @@ public class HardwareApollo {
         return inch;
     }
 
+    // imu parameters init
     public void imuRestart(){
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;

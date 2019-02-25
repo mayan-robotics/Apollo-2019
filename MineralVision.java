@@ -1,17 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import org.corningrobotics.enderbots.endercv.OpenCVPipeline;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.MatOfKeyPoint;
-import org.opencv.core.KeyPoint;
 import org.opencv.core.Rect;
-import org.opencv.core.Point;
 
 
 

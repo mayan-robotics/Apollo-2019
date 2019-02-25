@@ -9,12 +9,11 @@ public class AutoDepotOurCrater extends AutoMain {
     @Override
     public void runOpMode() throws InterruptedException {
         apolloInit();
-        //telemetry.addData("Apollo", "Ready");
-        //telemetry.update();
-        TURNRIGHTORLEFT = 1;
+        TURNRIGHTORLEFT = 1;    // Turn right for the other crater.
+
         waitForStart();
 
-        apolloRun(false);
+        apolloRun(false);   // Run auto of Depot.
 
     }
 }
