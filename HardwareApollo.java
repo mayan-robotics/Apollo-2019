@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import static java.lang.Math.abs;
+
 
 /**
  * Apollo 2019
@@ -28,13 +30,8 @@ public class HardwareApollo {
     //Servos
     public Servo    blockMineralServo = null;
     public Servo    mineralBoxServo = null;
-    public Servo    mineralGrabRight = null;
-    public Servo    mineralGrabLeft = null;
-    public Servo    goldMineralLeftServo = null;
-    public Servo    goldMineralRightServo = null;
-    public Servo    mineralPassLeft = null;
-    public Servo    mineralPassRight = null;
-    public Servo    mineralPush = null;
+    public Servo    mineralGrab = null;
+
 
     BNO055IMU imu;
 
@@ -56,8 +53,8 @@ public class HardwareApollo {
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
     // Mineral Blocker Positions
-    static final double block = 1;
-    static final double dontBlock = 0.2;
+    static final double block = 0;
+    static final double dontBlock = 0.35;
 
     // Gold mineral X positions limits for camera.
     static final int MineralMiddleLimitLeft = 650 ;
@@ -69,18 +66,19 @@ public class HardwareApollo {
 
     // climb open position.
     static final int climbOpenPosition = 37220;
+    static final int climbLanderPosition = 25000;
 
     // mineral pass positions
-    static final double mineralPassLeftOpen = 0.2;
+    static final double mineralPassLeftOpen = 0.4;
     static final double mineralPassRightOpen = 0.8;
     static final double mineralPassLeftClose = 1;
     static final double mineralPassRightClose = 0;
 
     // mineral box positions.
-    static final double mineralBoxServoOpen = 0.65 ;
-    static final double mineralBoxServoClose = 0.9852 ;
+    static final double mineralBoxServoOpen = 0.75 ; //A
+    static final double mineralBoxServoClose = 0.15; //Y
 
-    static final String Version = "1.2.23" ;
+    static final String Version = "1.3.13" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -99,7 +97,6 @@ public class HardwareApollo {
         driveLeftBack  = hwMap.get(DcMotor.class, "dlb");
         driveRightFront  = hwMap.get(DcMotor.class, "drf");
         driveRightBack  = hwMap.get(DcMotor.class, "drb");
-        //mineralGrab  = hwMap.get(DcMotor.class, "grab");
         lift  = hwMap.get(DcMotor.class, "lift");
         push  = hwMap.get(DcMotor.class, "push");
         mineralSend  = hwMap.get(DcMotor.class, "send");
@@ -108,13 +105,8 @@ public class HardwareApollo {
         // Define and initialize ALL servos.
         blockMineralServo  = hwMap.get(Servo.class, "block");
         mineralBoxServo  = hwMap.get(Servo.class, "mineralOpen");
-        mineralGrabLeft  = hwMap.get(Servo.class, "mineralGrabLeft");
-        mineralGrabRight  = hwMap.get(Servo.class, "mineralGrabRight");
-        goldMineralLeftServo = hwMap.get(Servo.class, "goldMineralLeft");
-        goldMineralRightServo = hwMap.get(Servo.class, "goldMineralRight");
-        mineralPassLeft = hwMap.get(Servo.class, "mineralPassLeft");
-        mineralPassRight = hwMap.get(Servo.class, "mineralPassRight");
-        mineralPush = hwMap.get(Servo.class, "mineralPush");
+        mineralGrab  = hwMap.get(Servo.class, "mineralGrab");
+        //goldMineralLeftServo = hwMap.get(Servo.class, "goldMineralServo");
 
         // Imu
         imu = hwMap.get(BNO055IMU.class, "imu");
@@ -140,7 +132,7 @@ public class HardwareApollo {
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    // Reversed motor
         push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
-        mineralGrabRight.setDirection(Servo.Direction.REVERSE);     // Reversed motor
+        mineralGrab.setDirection(Servo.Direction.REVERSE);     // Reversed motor
         mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
 
         // Set all motors to zero power
@@ -149,9 +141,7 @@ public class HardwareApollo {
         push.setPower(0);
         climbMotor.setPower(0);
         mineralSend.setPower(0);
-        setMineralGrabServos(0);
-
-        mineralPush.setPosition(0);
+        mineralGrab.setPosition(0);
 
         // Rest all motors encoders.
         setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -166,8 +156,6 @@ public class HardwareApollo {
         // Set all servos positions
         blockMineralServo.setPosition(block);
         mineralBoxServo.setPosition(0);
-        goldMineralLeftServo.setPosition(goldMineralServoCloseLeft);
-        goldMineralRightServo.setPosition(goldMineralServoCloseRight);
 
     }
 
@@ -261,11 +249,6 @@ public class HardwareApollo {
         }
     }
 
-    //Function to set position to mineral grab servos.
-    public void setMineralGrabServos(double position) {
-    mineralGrabLeft.setPosition(position);
-    mineralGrabRight.setPosition(position);
-    }
 
     //Function to set the position to all the drive motors.
     public void setLiftMotorsPosition(double ticks) {
