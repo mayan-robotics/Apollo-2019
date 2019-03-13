@@ -102,37 +102,16 @@ public class ApolloTeleop extends LinearOpMode {
             }
 
 
-
-            // mineral push, game pad 1 dpad.
-            if(gamepad1.dpad_left){
-                robot.mineralPush.setPosition(0.2);
-            }else if(gamepad1.dpad_right){
-                robot.mineralPush.setPosition(0.8);
-            }
-            else if(gamepad1.dpad_up){
-                robot.mineralPush.setPosition(0);
-            }
-
-            // mineral pass servos, game pad 1 right bumper.
-            if(gamepad1.right_bumper){
-                robot.mineralPassLeft.setPosition(robot.mineralPassLeftOpen);
-                robot.mineralPassRight.setPosition(robot.mineralPassRightOpen);
-            }else {
-                robot.mineralPassLeft.setPosition(robot.mineralPassLeftClose);
-                robot.mineralPassRight.setPosition(robot.mineralPassRightClose);
-            }
-
-
             //Mineral graber control. Game pad 2, triggers.
             if (gamepad2.left_trigger < 0 && gamepad2.right_trigger < 0) {
-                robot.setMineralGrabServos(0);
+                robot.mineralGrab.setPosition(0);
             }
             if (gamepad2.right_trigger > 0) {
-                robot.setMineralGrabServos(0.8);
+                robot.mineralGrab.setPosition(0.8);
             } else if (gamepad2.left_trigger > 0) {
-                robot.setMineralGrabServos(0.2);
+                robot.mineralGrab.setPosition(0.2);
             } else {
-                robot.setMineralGrabServos(0);
+                robot.mineralGrab.setPosition(0);
             }
 
 
