@@ -11,8 +11,6 @@ public class AutoDepotOurCrater extends AutoMain {
         apolloInit();
         TURNRIGHTORLEFT = 1;    // Turn right for the other crater.
 
-        waitForStart();
-
         apolloRun(false);   // Run auto of Depot.
 
     }
