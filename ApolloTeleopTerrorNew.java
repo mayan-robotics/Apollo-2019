@@ -64,7 +64,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             double RightStickY = -gamepad1.right_stick_y * normalOrReversDrive;    // The joystick goes negative when pushed forwards, so negate it
 
             // Thread auto climb set
-            if(!climbThreadActive){
+            if(!climbThreadActive && !gamepad2.dpad_up && !gamepad2.dpad_down){
                 climb.start();
             }
 
@@ -164,16 +164,18 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             }
 
 
-
             // Mineral push Control. Game pad 2, right stick.
-            if (-gamepad2.right_stick_y < 0.2  ) {
-                robot.push.setPower(gamepad2.right_stick_y*0.5);
+            robot.mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            if (-gamepad2.right_stick_y < 0.2 && robot.touchPusher.getState()) {
+                robot.push.setPower(gamepad2.right_stick_y);
                 //robot.blockMineralServo.setPosition(robot.block);
-            } else if (-gamepad2.right_stick_y > -0.2 ) {
-                robot.push.setPower(gamepad2.right_stick_y*0.5);
+            } else if (-gamepad2.right_stick_y > -0.2) {
+                robot.push.setPower(gamepad2.right_stick_y);
             } else{
                 robot.push.setPower(0);
+                robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
+
 
 
             // Mineral lift Control. Game pad 2, left stick.
@@ -182,6 +184,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             } else if (-gamepad2.left_stick_y > 0  ){
                 robot.lift.setPower(-gamepad2.left_stick_y );
             } else {
+
                 robot.lift.setPower(0);
             }
 
@@ -205,6 +208,13 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
                 if(!climbMotorInUse) {
                     robot.climbMotor.setPower(0);
                 }
+            }
+
+            if (robot.touchPusher.getState()) {
+                // If left Stick pushed backwards and touch sensor  is not pressed activate mineral push and lift to push in.
+                telemetry.addData("touch", "not pressed");
+            }else {
+                telemetry.addData("touch", "pressed");
             }
 
 
