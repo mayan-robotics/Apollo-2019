@@ -97,21 +97,27 @@ public abstract class AutoMain extends RobotFunctions
     void apolloRun(boolean isCrater)
     {
         try {
-            encoderClimbVision(1, robot.climbOpenPosition);     // Get down from lender, and at the same time open systems and process image.
+            //encoderClimbVision(1, robot.climbOpenPosition);     // Get down from lender, and at the same time open systems and process image.
 
             turnAwayFromLender();     // Turn towards the minerals.
             encoderSideWaysDrive(1, -15);
 
+            gyroDrive(DRIVE_SPEED, 50,angelForGyro(0));
+
             // According to the image processing we did.
             switch (getStartGoldMineralPosition) {
                 case LEFT:      // If gold mineral is on the left.
+                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -90);
                     break;
                 case RIGHT:     // If gold mineral is on the right.
+                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, 90);
                     break;
                 case MIDDLE:    // If gold mineral is on the middle, Close both servos.
 
                     break;
             }
+
+            waitSeconds(999);
 
         }catch (InterruptedException e) { }
 
