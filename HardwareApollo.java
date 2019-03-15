@@ -5,6 +5,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 
 import static java.lang.Math.abs;
 
@@ -34,6 +35,7 @@ public class HardwareApollo {
 
 
     BNO055IMU imu;
+    DigitalChannel touchPusher ;
 
     //Declaration of the drive motor types.
     public enum DRIVE_MOTOR_TYPES {
@@ -78,7 +80,7 @@ public class HardwareApollo {
     static final double mineralBoxServoOpen = 0.75 ; //A
     static final double mineralBoxServoClose = 0.15; //Y
 
-    static final String Version = "1.3.13" ;
+    static final String Version = "1.3.14" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -126,6 +128,11 @@ public class HardwareApollo {
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
         imu.initialize(parameters);
+
+
+        // Touch
+        touchPusher = hwMap.get(DigitalChannel.class, "touchPush" );
+        touchPusher.setMode(DigitalChannel.Mode.INPUT );
 
         // Set all motors directions.
         driveRightBack.setDirection(DcMotor.Direction.REVERSE);     // Reversed motor
