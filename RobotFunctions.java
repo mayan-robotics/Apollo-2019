@@ -17,6 +17,8 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.abs;
+
 /**
  * Apollo's Robot Functions.
  */
@@ -113,7 +115,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
 
                 // start motion.
-                speed = Range.clip(Math.abs(speed), 0.0, 1.0);
+                speed = Range.clip(abs(speed), 0.0, 1.0);
 
                 robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
@@ -136,7 +138,7 @@ public abstract class RobotFunctions extends LinearOpMode
                     rightSpeed = speed + steer;
 
                     // Normalize speeds if either one exceeds +/- 1.0;
-                    max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
+                    max = Math.max(abs(leftSpeed), abs(rightSpeed));
                     if (max > 1.0) {
                         leftSpeed /= max;
                         rightSpeed /= max;
@@ -240,7 +242,7 @@ public abstract class RobotFunctions extends LinearOpMode
             // determine turn power based on +/- error
             error = getError(angle);
 
-            if (Math.abs(error) <= HEADING_THRESHOLD) {
+            if (abs(error) <= HEADING_THRESHOLD) {
                 steer = 0.0;
                 leftSpeed = 0.0;
                 rightSpeed = 0.0;
@@ -333,7 +335,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
 
                 //Set Speed
-                robot.setDriveMotorsPower(Math.abs(speed), HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                robot.setDriveMotorsPower(abs(speed), HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -370,7 +372,7 @@ public abstract class RobotFunctions extends LinearOpMode
 
                 // reset the timeout time and start motion.
                 runtime.reset();
-                robot.push.setPower(Math.abs(speed));
+                robot.push.setPower(abs(speed));
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
                 // its target position, the motion will stop.  This is "safer" in the event that the robot will
@@ -405,7 +407,7 @@ public abstract class RobotFunctions extends LinearOpMode
 
                 // reset the timeout time and start motion.
                 runtime.reset();
-                robot.lift.setPower(Math.abs(speed));
+                robot.lift.setPower(abs(speed));
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
                 // its target position, the motion will stop.  This is "safer" in the event that the robot will
@@ -496,7 +498,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // Turn On RUN_TO_POSITION
                 robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                robot.climbMotor.setPower(Math.abs(speed));     // Set speed
+                robot.climbMotor.setPower(abs(speed));     // Set speed
                 //keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())) {
@@ -528,7 +530,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // Turn On RUN_TO_POSITION
                 robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                robot.climbMotor.setPower(Math.abs(speed));     // Set speed
+                robot.climbMotor.setPower(abs(speed));     // Set speed
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())){
@@ -564,6 +566,7 @@ public abstract class RobotFunctions extends LinearOpMode
 
     // Gyro angle
     public float GetGyroAngle() throws InterruptedException{
+
         Orientation angles =robot.imu.getAngularOrientation(AxesReference.INTRINSIC,AxesOrder.ZYX,AngleUnit.DEGREES);
         return(AngleUnit.DEGREES.fromUnit(angles.angleUnit,angles.firstAngle));
     }
@@ -571,6 +574,30 @@ public abstract class RobotFunctions extends LinearOpMode
     public void RestartAllEncoders() throws InterruptedException{
         robot.setAllMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.setAllMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void pushClose() throws InterruptedException{
+        try{
+            while (robot.touchPusher.getState()) {
+                robot.push.setPower(1);
+                Thread.sleep(0);
+            }
+        }catch (InterruptedException e) {
+            throw new InterruptedException();
+        }
+    }
+    public boolean JoysStickInDeadZone() throws InterruptedException{
+        try{
+            if(abs(gamepad1.left_stick_y)<0.3 && abs(gamepad1.left_stick_x)<0.3 ){
+                Thread.sleep(0);
+                return true;
+            }
+            else{
+                return false;
+            }
+        }catch (InterruptedException e) {
+            throw new InterruptedException();
+        }
     }
 
 }
