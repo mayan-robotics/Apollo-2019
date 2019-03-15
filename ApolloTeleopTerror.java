@@ -111,25 +111,13 @@ public class ApolloTeleopTerror extends LinearOpMode {
 
             //Mineral graber control. Game pad 2, triggers.
             if (gamepad2.left_trigger < 0 && gamepad2.right_trigger < 0) {
-                robot.mineralGrab.setPosition(0);
-            }
-            if (gamepad2.a ) {
-                if(grab){
-                grab = false;
-                }else {
-                    grab=true;
-                }
-
-                //robot.mineralGrab.setPosition(0);
-            //} //else if (gamepad2.left_trigger > 0) {
-                //robot.mineralGrab.setPosition(0.2);
-            } else {
-                //robot.mineralGrab.setPosition(0.8);
-            }
-
-            if(grab){
                 robot.mineralGrab.setPosition(0.8);
-            }else {
+            }
+            if (gamepad2.right_trigger > 0) {
+                robot.mineralGrab.setPosition(0.8);
+            } else if (gamepad2.left_trigger > 0) {
+                robot.mineralGrab.setPosition(0.2);
+            } else {
                 robot.mineralGrab.setPosition(0);
             }
 
@@ -170,15 +158,16 @@ public class ApolloTeleopTerror extends LinearOpMode {
             }
 
 
-
             // Mineral push Control. Game pad 2, right stick.
-            if (-gamepad2.right_stick_y < 0.2  ) {
-                robot.push.setPower(gamepad2.right_stick_y*0.5);
+            robot.mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            if (-gamepad2.right_stick_y < 0.2 && robot.touchPusher.getState()) {
+                robot.push.setPower(gamepad2.right_stick_y);
                 //robot.blockMineralServo.setPosition(robot.block);
-            } else if (-gamepad2.right_stick_y > -0.2 ) {
-                robot.push.setPower(gamepad2.right_stick_y*0.5);
+            } else if (-gamepad2.right_stick_y > -0.2) {
+                robot.push.setPower(gamepad2.right_stick_y);
             } else{
                 robot.push.setPower(0);
+                robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
 
 
