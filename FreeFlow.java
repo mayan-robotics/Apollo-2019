@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 import static java.lang.Math.abs;
 
 @TeleOp(name="FreeFlow", group="Connection")
+@Disabled
 
 public class FreeFlow extends RobotFunctions {
     //public Hardware_Connection robot = new Hardware_Connection();
