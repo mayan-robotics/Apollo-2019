@@ -27,10 +27,10 @@ public abstract class RobotFunctions extends LinearOpMode
 {
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime timeRespons = new ElapsedTime();
 
     private MineralVision vision;       // Use our vision class.
     private List<MatOfPoint> contoursGold = new ArrayList<>();
-
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
@@ -43,8 +43,7 @@ public abstract class RobotFunctions extends LinearOpMode
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.08;     // Larger is more responsive, but also less stable
 
-    static final double goldMineralServoCloseLeft = 0.5;
-    static final double goldMineralServoCloseRight = 0.6;
+    static final long thraedSleepTimeMS = 500;
 
     int TURNRIGHTORLEFT = 1;    /* This number controls the directions of the robot,
                                    if its 1 -> the robot will turn right, to our crater,
@@ -53,9 +52,11 @@ public abstract class RobotFunctions extends LinearOpMode
     boolean didInit = false;    // Boolean we use to know if we finished our init.
     int gyroDegrees = 0;    // Counter of gyro angle
 
-    double FORWORD =0.8 ;
-    double BACKWORDS = 0.2 ;
-    double STOP = 0 ;
+    final static double FORWARD = 0.8 ;
+    final static double BACKWARDS = 0.2 ;
+    final static double STOP = 0 ;
+
+    static final double encoderTicksRange = 5;
 
 
     // This function turns away from lender
@@ -179,6 +180,22 @@ public abstract class RobotFunctions extends LinearOpMode
                 // Update telemetry & Allow time for other processes to run.
                 telemetry.update();
 
+                    telemetry.update();
+
+            }
+        }catch (InterruptedException e) {
+            throw new InterruptedException();
+        }
+    }
+
+    public void FancyTurn (  double speed, double angle) throws InterruptedException {
+        try{
+            // keep looping while we are still active, and not on heading.
+            angle+=GetGyroAngle();
+            while (opModeIsActive() && !TheFancyFance(speed, angle, P_TURN_COEFF)) {
+                // Update telemetry & Allow time for other processes to run.
+                telemetry.update();
+
             }
         }catch (InterruptedException e) {
             throw new InterruptedException();
@@ -207,7 +224,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // Update telemetry & Allow time for other processes to run.
                 onHeading(speed, angle, P_TURN_COEFF);
                 telemetry.update();
-                Thread.sleep(0);
+                Thread.sleep(thraedSleepTimeMS);
             }
 
             // Stop all motion;
@@ -348,7 +365,7 @@ public abstract class RobotFunctions extends LinearOpMode
                                 && robot.driveLeftBack.isBusy()
                                 && robot.driveRightFront.isBusy()
                                 && robot.driveRightBack.isBusy())) {
-                    Thread.sleep(0);
+                    Thread.sleep(thraedSleepTimeMS);
                 }
                 // Stop all motion;
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
@@ -356,13 +373,18 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("drive");
         }
     }
 
     // Push motor by encoder function.
     public void encoderPush(double speed, int ticks) throws InterruptedException {
         try {
+
+            timeRespons.reset();
+            double pushLastPosition = robot.push.getCurrentPosition();
+            double pushCurrentPosition;
+
             robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Ensure that the opmode is still active
             if (opModeIsActive()) {
@@ -381,7 +403,18 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.push.isBusy())){
-                    Thread.sleep(0);
+                    pushCurrentPosition = robot.push.getCurrentPosition();
+
+                    if(timeRespons.seconds()>0.5){
+                        if((pushLastPosition-encoderTicksRange) < pushCurrentPosition &&
+                                pushCurrentPosition < (pushLastPosition+encoderTicksRange)){
+                            throw new InterruptedException("push");
+                        }
+                        pushLastPosition = robot.push.getCurrentPosition();
+                        timeRespons.reset();
+                    }
+
+                    Thread.sleep(thraedSleepTimeMS);
                 }
 
                 // Stop all motion;
@@ -391,7 +424,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("push");
         }
     }
 
@@ -416,7 +449,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.lift.isBusy())){
-                    Thread.sleep(0);
+                    Thread.sleep(thraedSleepTimeMS);
                 }
 
                 // Stop all motion;
@@ -426,63 +459,50 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("lift");
         }
     }
 
     // Send motor by encoder function.
-    public void encoderMineralSend(double speed, int Position) throws InterruptedException {
+    public void encoderMineralSend(double speed, int ticks) throws InterruptedException {
         try{
+            //timeRespons.reset();
+
             int mineralSenderPosition;
+            double mineralSendLastPosition = robot.mineralSend.getCurrentPosition();
+            double mineralSendcurrentPosition;
 
-            mineralSenderPosition = robot.mineralSend.getCurrentPosition();
-
+            robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Ensure that the opmode is still active
-            for (int i=0; i<2; i++) {
-                if (opModeIsActive()) {
-                    mineralSenderPosition = robot.mineralSend.getCurrentPosition();
-
-                    // reset the timeout time and start motion.
-                    runtime.reset();
-
-                    // keep looping while we are still active, and there is time left, and both motors are running.
-                    // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-                    // its target position, the motion will stop.  This is "safer" in the event that the robot will
-                    // always end the motion as soon as possible.
-                    // However, if you require that BOTH motors have finished their moves before the robot continues
-                    // onto the next step, use (isBusy() || isBusy()) in the loop test.
-
-                    if (mineralSenderPosition >= Position) {
-                        while (opModeIsActive() && mineralSenderPosition >= Position) {
-                            robot.mineralSend.setPower(speed);
-                            mineralSenderPosition = robot.mineralSend.getCurrentPosition();
-
-                            telemetry.addData("sender ", robot.mineralSend.getCurrentPosition());
-                            //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
-                            telemetry.update();
-                            Thread.sleep(0);
-                        }
-                    } else if (mineralSenderPosition <= Position) {
-                        while (opModeIsActive() && mineralSenderPosition <= Position) {
-                            robot.mineralSend.setPower(-speed);
-                            mineralSenderPosition = robot.mineralSend.getCurrentPosition();
-
-                            telemetry.addData("sender ", robot.mineralSend.getCurrentPosition());
-                            //telemetry.addData("sender right", robot.mineralSendRight.getCurrentPosition());
-                            telemetry.update();
-                            Thread.sleep(0);
-                        }
-                    }
-
-                    // Stop all motion;
-                    robot.mineralSend.setPower(0);
-
-                    // Turn off RUN_TO_POSITION
-                    robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (opModeIsActive()) {
+                robot.mineralSend.setTargetPosition(ticks);
+                // Turn On RUN_TO_POSITION
+                robot.mineralSend.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+                // reset the timeout time and start motion.
+                runtime.reset();
+                robot.mineralSend.setPower(abs(speed));
+                // keep looping while we are still active, and there is time left, and both motors are running.
+                // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+                // its target position, the motion will stop.  This is "safer" in the event that the robot will
+                // always end the motion as soon as possible.
+                // However, if you require that BOTH motors have finished their moves before the robot continues
+                // onto the next step, use (isBusy() || isBusy()) in the loop test.
+                while (opModeIsActive() &&
+                        (robot.mineralSend.isBusy())){
+                    telemetry.addData("Encoder Sender", robot.mineralSend.getCurrentPosition());
+                    telemetry.update();
+                    Thread.sleep(thraedSleepTimeMS);
                 }
+//
+                // Stop all motion;
+                robot.mineralSend.setPower(0);
+//
+                // Turn off RUN_TO_POSITION
+                robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("mineralSend");
         }
     }
 
@@ -502,7 +522,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 //keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())) {
-                    Thread.sleep(0);
+                    Thread.sleep(thraedSleepTimeMS);
                 }
 
                  //Stop all motion;
@@ -513,7 +533,7 @@ public abstract class RobotFunctions extends LinearOpMode
             }
 
         } catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("climbMotor");
         }
 
     }
@@ -534,7 +554,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())){
-                    Thread.sleep(0);
+                    Thread.sleep(thraedSleepTimeMS);
                     if (didInit==false){
                         //startRobotInit();
                         didInit= true;
@@ -550,7 +570,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }catch (InterruptedException e) {
-            throw new InterruptedException();
+            throw new InterruptedException("climbMotor");
         }
     }
 
@@ -580,7 +600,7 @@ public abstract class RobotFunctions extends LinearOpMode
         try{
             while (robot.touchPusher.getState()) {
                 robot.push.setPower(1);
-                Thread.sleep(0);
+                Thread.sleep(thraedSleepTimeMS);
             }
         }catch (InterruptedException e) {
             throw new InterruptedException();
@@ -589,7 +609,7 @@ public abstract class RobotFunctions extends LinearOpMode
     public boolean JoysStickInDeadZone() throws InterruptedException{
         try{
             if(abs(gamepad1.left_stick_y)<0.3 && abs(gamepad1.left_stick_x)<0.3 ){
-                Thread.sleep(0);
+                Thread.sleep(thraedSleepTimeMS);
                 return true;
             }
             else{
@@ -598,6 +618,40 @@ public abstract class RobotFunctions extends LinearOpMode
         }catch (InterruptedException e) {
             throw new InterruptedException();
         }
+    }
+
+    public boolean TheFancyFance( double speed, double angle, double PCoeff) throws InterruptedException{
+        try {
+            {
+            }
+            double error;
+            double steer;
+            boolean onTarget = false;
+            double leftSpeed;
+            double rightSpeed;
+
+            // determine turn power based on +/- error
+            error = getError(angle);
+
+            if (abs(error) <= HEADING_THRESHOLD) {
+                steer = 0.0;
+                leftSpeed = 0.0;
+                rightSpeed = 0.0;
+                onTarget = true;
+            } else {
+                steer = getSteer(error, PCoeff);
+                rightSpeed = speed * steer;
+                leftSpeed = -rightSpeed;
+            }
+            // Send desired speeds to motors.
+            robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+            robot.setDriveMotorsPower(rightSpeed-0.3, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+            return onTarget;
+
+        }catch (InterruptedException e) {
+            throw new InterruptedException();
+        }
+
     }
 
 }
