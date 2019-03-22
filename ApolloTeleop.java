@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Teleop Apollo", group="Apollo")
+@Disabled
 
 public class ApolloTeleop extends LinearOpMode {
 
@@ -150,7 +152,7 @@ public class ApolloTeleop extends LinearOpMode {
                 robot.push.setPower(1);
                 robot.blockMineralServo.setPosition(robot.block);
             } else if (-gamepad2.right_stick_y < -0.2  && pushPosition>pushCloseEncoderLimitPoint) {
-                robot.push.setPower(-1);
+                robot.push.setPower(-0.2);
             } else{
                 robot.push.setPower(0);
             }

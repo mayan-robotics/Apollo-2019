@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  */
 
 @TeleOp(name="Teleop Apollo Terror", group="terror")
+@Disabled
 
 public class ApolloTeleopTerror extends LinearOpMode {
 
@@ -190,6 +191,10 @@ public class ApolloTeleopTerror extends LinearOpMode {
                 robot.climbMotor.setPower(-1);
             } else {
                 robot.climbMotor.setPower(0);
+            }
+
+            if(gamepad1.b){
+
             }
 /*
             if(gamepad2.y){
