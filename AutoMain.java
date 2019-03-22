@@ -23,7 +23,7 @@ import java.util.List;
 
 public abstract class AutoMain extends RobotFunctions
 {
-    HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
+    //HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     //RobotFunctions functions = new RobotFunctions(); // use Apollo's hardware
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -96,7 +96,24 @@ public abstract class AutoMain extends RobotFunctions
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
+
         try {
+            encoderLift(1,180);
+            waitSeconds(1);
+            encoderLift(1,0);
+            waitSeconds(999);
+
+            try {
+                encoderPush(1,300);
+            }catch (InterruptedException e){
+                robot.push.setPower(0);
+                telemetry.addData("e:",e);
+
+                telemetry.update();
+            }
+
+            //encoderMineralSend(1, 700);
+            waitSeconds(999);
             //encoderClimbVision(1, robot.climbOpenPosition);     // Get down from lender, and at the same time open systems and process image.
 
             turnAwayFromLender();     // Turn towards the minerals.
@@ -129,7 +146,7 @@ public abstract class AutoMain extends RobotFunctions
             if(getStartGoldMineralPosition==GoldPosition.MIDDLE)
             {   // If gold mineral is in te middle.
                 encoderLift(1, 675);
-                robot.mineralGrab.setPosition(FORWORD);
+                robot.mineralGrab.setPosition(FORWARD);
                 gyroDrive(DRIVE_SPEED,95,angelForGyro(0));
                 robot.mineralGrab.setPosition(STOP);
                 encoderLift(1, 550);
@@ -139,7 +156,7 @@ public abstract class AutoMain extends RobotFunctions
             }
             gyroDrive(DRIVE_SPEED,115,angelForGyro(0));
 
-            robot.mineralGrab.setPosition(FORWORD);        // Try to grab minerals.
+            robot.mineralGrab.setPosition(FORWARD);        // Try to grab minerals.
             encoderLift(1, 685);
             encoderPush(1,3500);
 
@@ -159,7 +176,7 @@ public abstract class AutoMain extends RobotFunctions
 
                 //encoderLift(1, 675);
 
-                robot.mineralGrab.setPosition(BACKWORDS);
+                robot.mineralGrab.setPosition(BACKWARDS);
                 //waitSeconds(0.5);
 
                 encoderLift(1, 580);
@@ -176,7 +193,7 @@ public abstract class AutoMain extends RobotFunctions
             {
                 gyroDrive(DRIVE_SPEED, 140, angelForGyro(0));
                 encoderLift(1, 505);
-                robot.mineralGrab.setPosition(BACKWORDS);
+                robot.mineralGrab.setPosition(BACKWARDS);
                 waitSeconds(0.5);
                 robot.mineralGrab.setPosition(STOP);
 
@@ -188,7 +205,7 @@ public abstract class AutoMain extends RobotFunctions
             encoderLift(1, 675);
 
 
-            robot.mineralGrab.setPosition(FORWORD);    // Try to grab minerals.
+            robot.mineralGrab.setPosition(FORWARD);    // Try to grab minerals.
             while (opModeIsActive()){            }  // Keep trying to grab minerals until times up.
             }catch (InterruptedException e) { }
 
@@ -215,7 +232,7 @@ public abstract class AutoMain extends RobotFunctions
             encoderPush(1, 2000);
             encoderLift(1, 680);
 
-            robot.mineralGrab.setPosition(FORWORD);
+            robot.mineralGrab.setPosition(FORWARD);
 
             encoderPush(1, 4000);
             encoderPush(1, 2000);
