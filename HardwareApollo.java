@@ -78,9 +78,9 @@ public class HardwareApollo {
 
     // mineral box positions.
     static final double mineralBoxServoOpen = 0.75 ; //A
-    static final double mineralBoxServoClose = 0.15; //Y
+    static final double mineralBoxServoClose = 0.25; //Y
 
-    static final String Version = "1.3.14" ;
+    static final String Version = "1.3.21" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -137,7 +137,7 @@ public class HardwareApollo {
         // Set all motors directions.
         driveRightBack.setDirection(DcMotor.Direction.REVERSE);     // Reversed motor
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    // Reversed motor
-        push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
+        //push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         mineralGrab.setDirection(Servo.Direction.REVERSE);     // Reversed motor
         mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
@@ -162,7 +162,7 @@ public class HardwareApollo {
     public void InitServoes(){
         // Set all servos positions
         blockMineralServo.setPosition(block);
-        mineralBoxServo.setPosition(0);
+        mineralBoxServo.setPosition(mineralBoxServoOpen);
 
     }
 
@@ -186,14 +186,14 @@ public class HardwareApollo {
             case DIAGONAL_LEFT:
                 driveRightFront.setPower(power);
                 driveLeftBack.setPower(power);
-                driveLeftFront.setPower(0);
-                driveRightBack.setPower(0);
+                driveLeftFront.setPower(power*-0);
+                driveRightBack.setPower(power*-0);
                 break;
             case DIAGONAL_RIGHT:
                 driveLeftFront.setPower(power);
                 driveRightBack.setPower(power);
-                driveLeftBack.setPower(0);
-                driveRightFront.setPower(0);
+                driveLeftBack.setPower(power*-0.7);
+                driveRightFront.setPower(power*-0.7);
                 break;
             case ALL:
             default:
@@ -267,11 +267,7 @@ public class HardwareApollo {
     //Function to set the run mode for all the motors.
     public void setAllMotorsMode(DcMotor.RunMode runMode) {
         setDriveMotorsMode(runMode);
-        mineralSend.setMode(runMode);
-        climbMotor.setMode(runMode);
-        lift.setMode(runMode);
-        push.setMode(runMode);
-
+        setNotDriveMotorsMode(runMode);
     }
 
 
@@ -281,6 +277,14 @@ public class HardwareApollo {
         driveLeftBack.setMode(runMode);
         driveRightFront.setMode(runMode);
         driveRightBack.setMode(runMode);
+    }
+
+    //Function to set the run mode for all the nun drive motors.
+    public void setNotDriveMotorsMode(DcMotor.RunMode runMode) {
+        mineralSend.setMode(runMode);
+        climbMotor.setMode(runMode);
+        lift.setMode(runMode);
+        push.setMode(runMode);
     }
 
     //Function converts centimeters to inches.
