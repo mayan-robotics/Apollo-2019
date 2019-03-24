@@ -34,6 +34,9 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     volatile boolean liftDownThreadActive = false;
     volatile boolean liftDownInUse = false;
     volatile boolean buttonClicked = true;
+    volatile boolean threadOn = true;
+
+    volatile boolean OutThread = true;
 
 
 
@@ -41,11 +44,13 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     public void runOpMode() {
         Thread  climb = new climb();                    // Climb Thread
         Thread  moveMinerals = new moveMinerals();      // Move minerals Thread
+        Thread  timepush = new timepush();      // Move minerals Thread
 
         //Hardware init
         robot.init(hardwareMap);
         robot.setNotDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.push.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Send telemetry message to signify robot waiting;
         TelementryRobotStartStatus();
@@ -54,30 +59,49 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         waitForStart();
 
         robot.InitServoes();        // Set all servos positions
-        climb.start();              // Run Thread
-        moveMinerals.start();       // Run Thread
+        //climb.start();              // Run Thread
+
+       // moveMinerals.start();       // Run Thread
 
         while (opModeIsActive())
         {
 
+            if(gamepad2.x){
+                if(threadOn == true){
+                    threadOn= false;
+                }else{
+                    threadOn= true;
+                }
+            }
+
             DrivingFeatures();
             MainDriving();
 
-            GraberControl();
+            GraberControl();/*
+            if(!extrusionsStuck() && (gamepad1.left_trigger>0.3 || gamepad1.right_trigger>0.3)) {
+                ExtrusionsControl();
+                telemetry.addData("Extrusions", "NO ENCODERS");
+                telemetry.update();
+            }else {
+                ExtrusionsControlWithoutEnoders();
+            }
+            */
             ExtrusionsControl();
             pushExtrusionsControl();
             MineralBoxControl();
             ServoBlockMineralsControl();
             LiftControl();
             GeneralRobotActions();
-            ResetEncodersButton();
+            //ResetEncodersButton();
 
             ClimbThreadActivate(climb);
             ClimbSystemControl(climb);
             MoveMineralsMagicButtonControl(moveMinerals);
 
+            //mineralPassThread(moveMinerals);
 
-            TelemetryRobotStatus();
+
+            //TelemetryRobotStatus();
         }
 
     }
@@ -110,7 +134,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         } else {   // Drive Normally, tank mode.
             robot.setDriveMotorsPower(LeftStickY * speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
             robot.setDriveMotorsPower(RightStickY * speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-            telemetry.addData("Drive", "Normal");
+            //telemetry.addData("Drive", "Normal");
         }
     }
 
@@ -139,8 +163,8 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             robot.mineralGrab.setPosition(FORWARD);
         } else if (gamepad2.left_trigger > 0) {
             robot.mineralGrab.setPosition(BACKWARDS);
-        } else {
-            robot.mineralGrab.setPosition(STOP);
+        } else if(!moveMineralsInUse){
+            //robot.mineralGrab.setPosition(STOP);
         }
     }
 
@@ -163,17 +187,37 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         }
     }
 
-    public void pushExtrusionsControl(){
-        if (-gamepad2.right_stick_y < 0.2 && !buttonClicked) {
-            robot.push.setPower(gamepad2.right_stick_y);
-            //robot.blockMineralServo.setPosition(robot.block);
-        } else if (-gamepad2.right_stick_y > -0.2) {
-            buttonClicked=false;
-            robot.push.setPower(gamepad2.right_stick_y);
-        } else{
-            if(!moveMineralsInUse) {
-                robot.push.setPower(0);
-                robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+
+    public void ExtrusionsControlWithoutEnoders(){
+        // Game Pad 1, triggers. Extrusions control.
+        if (gamepad1.right_trigger > 0.1 )
+        {   // Right trigger pushed, open extrusions.
+            robot.mineralSend.setPower(gamepad1.right_trigger);
+
+        } else if (gamepad1.left_trigger > 0.1)
+        {
+            // Left trigger pushed, close extrusions.
+            robot.mineralSend.setPower(-0.25);
+            //robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
+        } else {
+            robot.mineralSend.setPower(0);
+            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+        }
+    }
+
+    public void pushExtrusionsControl() {
+        if (!moveMineralsInUse){
+            if (-gamepad2.right_stick_y < 0.2 && !buttonClicked) {
+                robot.push.setPower(gamepad2.right_stick_y * 0.5);
+                //robot.blockMineralServo.setPosition(robot.block);
+            } else if (-gamepad2.right_stick_y > -0.2) {
+                buttonClicked = false;
+                robot.push.setPower(gamepad2.right_stick_y);
+            } else {
+                if (!moveMineralsInUse) {
+                    robot.push.setPower(0);
+                    robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+                }
             }
         }
     }
@@ -193,7 +237,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         // Mineral blocker control. Game pad 2 bumper.
         if (gamepad2.left_bumper) {
             robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
-        } else {
+        } else if (!moveMineralsInUse){
             robot.blockMineralServo.setPosition(robot.block);   //Set Mode of servo to block minerals.
         }
     }
@@ -211,14 +255,19 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
 
     public void LiftControl(){
         // Mineral lift Control. Game pad 2, left stick.
+
         if (-gamepad2.left_stick_y < -0.4 ) {
             robot.lift.setPower(-gamepad2.left_stick_y );
         } else if (-gamepad2.left_stick_y > 0.4  ){
             robot.lift.setPower(-gamepad2.left_stick_y );
+        } else  if(gamepad2.a){
+            robot.lift.setPower(1);
+        }else if(gamepad2.b){
+            robot.lift.setPower(-1);
         } else {
             if(!moveMineralsInUse) {
                 robot.lift.setPower(0);
-                robot.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+                //robot.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
         }
     }
@@ -252,16 +301,35 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     public void ClimbThreadActivate(Thread climb){
         // Thread auto climb set
         if(!climbThreadActive && !gamepad2.dpad_up && !gamepad2.dpad_down){
-            climb.start();
+            //climb.start();
         }
     }
 
 
     public void MoveMineralsMagicButtonControl(Thread moveMinerals){
+        if(gamepad2.right_bumper){
+            if (!moveMineralsThreadActive) {
+                moveMinerals.start();
+            }
+        }else if(gamepad2.y){
+            if (!moveMineralsThreadActive) {
+                moveMinerals.start();
+            }
+        }else {
+            if(moveMineralsThreadActive) {
+                moveMineralsThreadActive=false;
+                moveMineralsInUse=false;
+                moveMinerals.interrupt();
+            }
+        }
+
+
+        /*
         // Thread move minerals auto
         if(!gamepad2.right_bumper ){
             if(moveMineralsThreadActive) {
                 moveMineralsThreadActive=false;
+                moveMineralsInUse=false;
                 moveMinerals.interrupt();
             }
         }else{
@@ -269,6 +337,27 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
                 moveMinerals.start();
             }
         }
+        */
+    }
+
+
+    public void mineralPassThread(Thread moveMinerals){
+        if(threadOn){
+            if(!moveMineralsThreadActive) {
+                moveMinerals.start();
+            }
+        }else {
+            if(moveMineralsThreadActive){
+                moveMinerals.interrupt();
+            }
+        }
+
+        if(gamepad2.right_bumper){
+            if(OutThread) {
+                moveMinerals.interrupt();
+            }
+        }
+
     }
 
     public void GeneralRobotActions(){
@@ -305,13 +394,6 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     }
 
 
-    public void TelementryRobotStartStatus(){
-        // Send telemetry message to signify robot waiting;
-        telemetry.addData("Version", robot.Version);
-        telemetry.addData("Apollo", "Ready");
-        telemetry.update();
-
-    }
 
 
 
@@ -340,10 +422,11 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
                             robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                             encoderClimb(1, robot.climbLanderPosition);
                             climbMotorInUse=false;
-                        }else {
-                            Thread.sleep(thraedSleepTimeMS);
+                        }else{
+                            Thread.sleep(threadSleepTimeMS);
                         }
                     }
+                    Thread.sleep(threadSleepTimeMS);
                 }
             }catch (InterruptedException e) { }
         }
@@ -359,20 +442,92 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         public void run()
         {
             try {
-                moveMineralsThreadActive=true;
+                //while (opModeIsActive()) {
+                    Thread timepush = new timepush();      // Move minerals Thread
+                    moveMineralsThreadActive = true;
 
-                    moveMineralsInUse=true;
-                    pushClose();
-                    encoderLift(1,0);
-                    moveMineralsInUse=false;
+                    if (gamepad2.right_bumper) {
+                        moveMineralsInUse = true;
+                        mineralUp();
+                        waitSeconds(5);
+                        telemetry.addData("Finished1", "here");
+                        telemetry.update();
+                        moveMineralsInUse = false;
+
+
+                    } else if(gamepad2.y) {
+                        OutThread=true;
+                        moveMineralsInUse = true;
+
+                        timepush.start();
+                        liftUntilStuck(1);
+                        encoderLift(1, (robot.lift.getCurrentPosition() - 50));
+
+                        robot.blockMineralServo.setPosition(robot.block);   // Set Mode of servo to not block minerals.
+                        robot.mineralGrab.setPosition(FORWARD);
+                        telemetry.addData("Finished1", "here");
+                        telemetry.update();
+
+                        waitSeconds(100);
+                        moveMineralsInUse = false;
+                        OutThread=false;
+                    //}
+                /*
+                if(gamepad2.right_bumper) {
+                    moveMineralsThreadActive = true;
+                    moveMineralsInUse = true;
+                    mineralUp();
+                    waitSeconds(5);
+                    telemetry.addData("Finished1", "here");
+                    telemetry.update();
+                    moveMineralsInUse = false;
+                }
+                else if(gamepad2.dpad_left){
+                    liftUntilStuck(1);
+                    waitSeconds(3);
+                }
+                */
+                }
 
             }catch (InterruptedException e){
-                telemetry.addData("Interrupt","HERE");
+                telemetry.addData("Interrupt",e);
                 telemetry.update();
             }
 
         }
     }
+
+    public void callThread(Thread timepush){
+        timepush.start();
+    }
+
+
+    private class timepush extends Thread
+    {
+        public timepush() {
+            this.setName("timepush");
+        }
+        @Override
+        public void run()
+        {
+            try {
+
+                telemetry.addData("HEREEE","HEERE");
+                telemetry.update();
+                //waitSeconds(0.5);
+                robot.push.setPower(-1);
+                //waitSeconds(0.5);
+                robot.mineralGrab.setPosition(FORWARD);
+                waitSeconds(1.5);
+
+            }catch (InterruptedException e){
+                telemetry.addData("Interrupt",e);
+                telemetry.update();
+            }
+
+        }
+    }
+
 
 /*
     private class liftDown extends Thread

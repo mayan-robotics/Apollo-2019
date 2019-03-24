@@ -54,6 +54,8 @@ public abstract class AutoMain extends RobotFunctions
     int gyroDegrees = 0;    // Counter of gyro angle
 
 
+
+
     // Declaration of gold positions.
     private enum GoldPosition {
         LEFT,
@@ -73,7 +75,8 @@ public abstract class AutoMain extends RobotFunctions
         //Hardware init
         robot.init(hardwareMap);
         robot.InitServoes();
-        robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.setAllMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.push.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.imuRestart();
         gyroDegrees=0;  // Reset gyro angle.
 
@@ -85,17 +88,60 @@ public abstract class AutoMain extends RobotFunctions
 
         }
 
+        // Send telemetry message to signify robot is ready;
+        TelementryRobotStartStatus();
+    }
 
+    public void testInterruptedException(){
 
-    // Send telemetry message to signify robot is ready;
-        telemetry.addData("Version", robot.Version);      // Program date.
-        telemetry.addData("Apollo", "Init success");    // Telemetry message to signify the robot is ready.
-        telemetry.update();
+        try {
+            encoderPush(1,300);
+        }catch (InterruptedException e){
+            InterruptedException ex = e;
+            robot.push.setPower(0);
+            telemetry.addData("e:",e);
+            telemetry.update();
+        }
+
+    }
+
+    public void liftDown(){
+        try
+        {
+            liftUntilStuck(1);
+            encoderLift(1, (robot.lift.getCurrentPosition()-100));
+
+        }catch (InterruptedException e){
+
+        }
+    }
+
+    public void passMinrals(){
+        try {
+            mineralUp();
+        }catch (InterruptedException e){
+
+        }
+    }
+
+    public void grabMinerals(){
+        try
+        {
+            liftUntilStuck(-1);
+            robot.mineralGrab.setPosition(BACKWARDS);
+            waitSeconds(3);
+            robot.mineralGrab.setPosition(STOP);
+
+        }catch (InterruptedException e){
+
+        }
+
     }
 
     //The main function of the autonomous
     void apolloRun(boolean isCrater)
     {
+
 
         try {
             encoderLift(1,180);
@@ -344,7 +390,7 @@ public abstract class AutoMain extends RobotFunctions
         return null;}
 
 
-
+//made by nir
     private class duringClimb extends Thread
     {
         public duringClimb()

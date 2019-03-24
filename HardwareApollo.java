@@ -80,7 +80,7 @@ public class HardwareApollo {
     static final double mineralBoxServoOpen = 0.75 ; //A
     static final double mineralBoxServoClose = 0.25; //Y
 
-    static final String Version = "1.3.21" ;
+    static final String Version = "1.3.24" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;

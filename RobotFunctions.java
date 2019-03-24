@@ -28,6 +28,7 @@ public abstract class RobotFunctions extends LinearOpMode
     HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime timeRespons = new ElapsedTime();
+    private ElapsedTime timeResponsExtrusions = new ElapsedTime();
 
     private MineralVision vision;       // Use our vision class.
     private List<MatOfPoint> contoursGold = new ArrayList<>();
@@ -43,7 +44,7 @@ public abstract class RobotFunctions extends LinearOpMode
     static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
     static final double P_DRIVE_COEFF = 0.08;     // Larger is more responsive, but also less stable
 
-    static final long thraedSleepTimeMS = 500;
+    static final long threadSleepTimeMS = 500;
 
     int TURNRIGHTORLEFT = 1;    /* This number controls the directions of the robot,
                                    if its 1 -> the robot will turn right, to our crater,
@@ -57,6 +58,7 @@ public abstract class RobotFunctions extends LinearOpMode
     final static double STOP = 0 ;
 
     static final double encoderTicksRange = 5;
+    static final double encoderRespondingTimeSeconds = 0.1;
 
 
     // This function turns away from lender
@@ -224,7 +226,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // Update telemetry & Allow time for other processes to run.
                 onHeading(speed, angle, P_TURN_COEFF);
                 telemetry.update();
-                Thread.sleep(thraedSleepTimeMS);
+                Thread.sleep(threadSleepTimeMS);
             }
 
             // Stop all motion;
@@ -365,7 +367,7 @@ public abstract class RobotFunctions extends LinearOpMode
                                 && robot.driveLeftBack.isBusy()
                                 && robot.driveRightFront.isBusy()
                                 && robot.driveRightBack.isBusy())) {
-                    Thread.sleep(thraedSleepTimeMS);
+                    Thread.sleep(threadSleepTimeMS);
                 }
                 // Stop all motion;
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
@@ -403,8 +405,9 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.push.isBusy())){
-                    pushCurrentPosition = robot.push.getCurrentPosition();
 
+
+                    pushCurrentPosition = robot.push.getCurrentPosition();
                     if(timeRespons.seconds()>0.5){
                         if((pushLastPosition-encoderTicksRange) < pushCurrentPosition &&
                                 pushCurrentPosition < (pushLastPosition+encoderTicksRange)){
@@ -414,7 +417,8 @@ public abstract class RobotFunctions extends LinearOpMode
                         timeRespons.reset();
                     }
 
-                    Thread.sleep(thraedSleepTimeMS);
+
+                    Thread.sleep(threadSleepTimeMS);
                 }
 
                 // Stop all motion;
@@ -431,6 +435,10 @@ public abstract class RobotFunctions extends LinearOpMode
     // Lift motor by encoder function.
     public void encoderLift(double speed, int ticks) throws InterruptedException {
         try{
+            timeRespons.reset();
+            double liftLastPosition = robot.lift.getCurrentPosition();
+            double liftCurrentPosition;
+
             robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Ensure that the opmode is still active
             if (opModeIsActive()) {
@@ -449,16 +457,65 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.lift.isBusy())){
-                    Thread.sleep(thraedSleepTimeMS);
+
+                    liftCurrentPosition = robot.lift.getCurrentPosition();
+                    if(timeRespons.seconds()>0.5){
+                        if((liftLastPosition-encoderTicksRange) < liftCurrentPosition &&
+                                liftCurrentPosition < (liftLastPosition+encoderTicksRange)){
+                            // Stop all motion;
+                            robot.lift.setPower(0);
+                            throw new InterruptedException("lift");
+                        }
+                        liftLastPosition = robot.push.getCurrentPosition();
+                        timeRespons.reset();
+                    }
+
+                    Thread.sleep(threadSleepTimeMS);
                 }
 
                 // Stop all motion;
                 robot.lift.setPower(0);
 
                 // Turn off RUN_TO_POSITION
-                robot.lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             }
         }catch (InterruptedException e) {
+            robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            throw new InterruptedException("lift");
+        }
+    }
+
+    public void liftUntilStuck (double speed) throws InterruptedException{
+        try {
+            timeRespons.reset();
+            double liftLastPosition = robot.lift.getCurrentPosition();
+            double liftCurrentPosition = 0;
+            robot.lift.setPower(speed);
+            boolean Exit = false;
+            while (!Exit) {
+
+                if (timeRespons.seconds() > encoderRespondingTimeSeconds) {
+                    telemetry.addData("liftCurrentPosition time",liftCurrentPosition);
+                    liftCurrentPosition = robot.lift.getCurrentPosition();
+                    if (((liftLastPosition - encoderTicksRange) < liftCurrentPosition) &&
+                         (liftCurrentPosition < (liftLastPosition + encoderTicksRange))) {
+                        // Stop all motion;
+                        robot.lift.setPower(0);
+                        Exit = true;
+                        telemetry.addData("liftCurrentPosition stop",liftCurrentPosition);
+                        break;
+                    }
+                    liftLastPosition = robot.lift.getCurrentPosition();
+                    timeRespons.reset();
+                }
+                Thread.sleep(100/*threadSleepTimeMS*/);
+                telemetry.addData("liftCurrentPosition",liftCurrentPosition);
+                telemetry.addData("liftLastPosition",liftLastPosition);
+                telemetry.update();
+
+            }
+        }catch (InterruptedException e){
+            robot.lift.setPower(0);
             throw new InterruptedException("lift");
         }
     }
@@ -466,11 +523,9 @@ public abstract class RobotFunctions extends LinearOpMode
     // Send motor by encoder function.
     public void encoderMineralSend(double speed, int ticks) throws InterruptedException {
         try{
-            //timeRespons.reset();
-
-            int mineralSenderPosition;
+            timeRespons.reset();
             double mineralSendLastPosition = robot.mineralSend.getCurrentPosition();
-            double mineralSendcurrentPosition;
+            double mineralSendCurrentPosition;
 
             robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Ensure that the opmode is still active
@@ -478,7 +533,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 robot.mineralSend.setTargetPosition(ticks);
                 // Turn On RUN_TO_POSITION
                 robot.mineralSend.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//
+
                 // reset the timeout time and start motion.
                 runtime.reset();
                 robot.mineralSend.setPower(abs(speed));
@@ -490,9 +545,20 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.mineralSend.isBusy())){
-                    telemetry.addData("Encoder Sender", robot.mineralSend.getCurrentPosition());
-                    telemetry.update();
-                    Thread.sleep(thraedSleepTimeMS);
+
+                    mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
+                    if(timeRespons.seconds()>0.5){
+                        if((mineralSendLastPosition-encoderTicksRange) < mineralSendCurrentPosition &&
+                                mineralSendCurrentPosition < (mineralSendLastPosition+encoderTicksRange)){
+                            // Stop all motion;
+                            robot.mineralSend.setPower(0);
+                            throw new InterruptedException("mineralSend");
+                        }
+                        mineralSendLastPosition = robot.push.getCurrentPosition();
+                        timeRespons.reset();
+                    }
+
+                    Thread.sleep(threadSleepTimeMS);
                 }
 //
                 // Stop all motion;
@@ -503,7 +569,28 @@ public abstract class RobotFunctions extends LinearOpMode
             }
         }catch (InterruptedException e) {
             throw new InterruptedException("mineralSend");
+        }//im blackie and im know it
+    }
+
+    public boolean extrusionsStuck(){
+        timeResponsExtrusions.reset();
+        double mineralSendLastPosition = robot.mineralSend.getCurrentPosition();
+        double mineralSendCurrentPosition;
+
+        mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
+        if(timeResponsExtrusions.seconds()>0.5){
+            mineralSendLastPosition = robot.push.getCurrentPosition();
+            timeResponsExtrusions.reset();
+            if((mineralSendLastPosition-encoderTicksRange) < mineralSendCurrentPosition &&
+                    mineralSendCurrentPosition < (mineralSendLastPosition+encoderTicksRange)){
+                // Stop all motion;
+                robot.mineralSend.setPower(0);
+                return true;
+            }
+            else {return false;}
+
         }
+        return false;
     }
 
 
@@ -511,6 +598,10 @@ public abstract class RobotFunctions extends LinearOpMode
     // Opens systems, and activates vision to check where the gold mineral, in the same time.
     public void encoderClimb(double speed, int ticks) throws InterruptedException {
         try {
+            timeRespons.reset();
+            double climbMotorLastPosition = robot.climbMotor.getCurrentPosition();
+            double climbMotorCurrentPosition;
+
             robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             // Ensure that the opmode is still active
             if (opModeIsActive()) {
@@ -522,7 +613,20 @@ public abstract class RobotFunctions extends LinearOpMode
                 //keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())) {
-                    Thread.sleep(thraedSleepTimeMS);
+
+                    climbMotorCurrentPosition = robot.climbMotor.getCurrentPosition();
+                    if(timeRespons.seconds()>0.5){
+                        if((climbMotorLastPosition-encoderTicksRange) < climbMotorCurrentPosition &&
+                                climbMotorCurrentPosition < (climbMotorLastPosition+encoderTicksRange)){
+                            // Stop all motion;
+                            robot.climbMotor.setPower(0);
+                            throw new InterruptedException("climbMotor");
+                        }
+                        climbMotorLastPosition = robot.push.getCurrentPosition();
+                        timeRespons.reset();
+                    }
+
+                    Thread.sleep(threadSleepTimeMS);
                 }
 
                  //Stop all motion;
@@ -554,7 +658,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 // keep looping while we are still active, and there is time left, and both motors are running.
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())){
-                    Thread.sleep(thraedSleepTimeMS);
+                    Thread.sleep(threadSleepTimeMS);
                     if (didInit==false){
                         //startRobotInit();
                         didInit= true;
@@ -600,7 +704,7 @@ public abstract class RobotFunctions extends LinearOpMode
         try{
             while (robot.touchPusher.getState()) {
                 robot.push.setPower(1);
-                Thread.sleep(thraedSleepTimeMS);
+                Thread.sleep(threadSleepTimeMS);
             }
         }catch (InterruptedException e) {
             throw new InterruptedException();
@@ -609,7 +713,7 @@ public abstract class RobotFunctions extends LinearOpMode
     public boolean JoysStickInDeadZone() throws InterruptedException{
         try{
             if(abs(gamepad1.left_stick_y)<0.3 && abs(gamepad1.left_stick_x)<0.3 ){
-                Thread.sleep(thraedSleepTimeMS);
+                Thread.sleep(threadSleepTimeMS);
                 return true;
             }
             else{
@@ -652,6 +756,26 @@ public abstract class RobotFunctions extends LinearOpMode
             throw new InterruptedException();
         }
 
+    }
+
+    public void mineralUp() throws InterruptedException{
+        try {
+            pushClose();
+            liftUntilStuck(1);
+            telemetry.update();
+            robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
+            robot.mineralGrab.setPosition(FORWARD);
+        }catch (InterruptedException e){
+            throw new InterruptedException();
+        }
+    }
+
+
+    public void TelementryRobotStartStatus(){
+        // Send telemetry message to signify robot waiting;
+        telemetry.addData("Version", robot.Version);
+        telemetry.addData("Apollo", "Ready");
+        telemetry.update();
     }
 
 }
