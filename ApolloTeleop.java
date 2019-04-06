@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Teleop Apollo", group="Apollo")
+@Disabled
 
 public class ApolloTeleop extends LinearOpMode {
 
@@ -55,15 +56,21 @@ public class ApolloTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            if (gamepad1.y) {
-                robot.mineralBoxServo.setPosition(robot.mineralBoxServoClose);
-            } else if (gamepad1.a) {
-                robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
-            }else if(gamepad1.x){
-                robot.mineralBoxServo.setPosition(1);
+            // Game Pad 1, triggers. Extrusions control.
+            if (gamepad1.right_trigger > 0.1 )
+            {   // Right trigger pushed, open extrusions.
+                robot.mineralSend.setPower(gamepad1.right_trigger);
+
+            } else if (gamepad1.left_trigger > 0.1)
+            {
+                // Left trigger pushed, close extrusions.
+                robot.mineralSend.setPower(-0.25);
+                //robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
+            } else {
+                robot.mineralSend.setPower(0);
+                robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
 
-            telemetry.addData("gamepad2.left_stick_y",-gamepad2.left_stick_y);
             telemetry.addData("Encoder lift", robot.lift.getCurrentPosition());
             telemetry.addData("Encoder push", robot.push.getCurrentPosition());
             telemetry.addData("Encoder climb", robot.climbMotor.getCurrentPosition());

@@ -177,7 +177,7 @@ public class HardwareCheck extends RobotFunctions{
                     for (int i = 0; i < 4; i++)
                     {
                         try{
-                        driveByGyro(0.7, 150, 90 * i);
+                        //driveByGyro(0.7, 150, 90 * i,true);
                         waitSeconds(1);
                         turnByGyro(TURN_SPEED, 90 * (i + 1));
                         waitSeconds(2);
@@ -280,7 +280,7 @@ public class HardwareCheck extends RobotFunctions{
             }
             else if(gamepad1.dpad_up){
                 try {
-                    encoderSideWaysDrive(1,30);
+                    encoderSideWaysDrive(1,30,true);
                 }catch (InterruptedException e) { }
             }
             else {

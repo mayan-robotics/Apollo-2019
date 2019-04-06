@@ -58,16 +58,21 @@ public abstract class RobotFunctions extends LinearOpMode
     final static double STOP = 0 ;
 
     static final double encoderTicksRange = 5;
-    static final double encoderRespondingTimeSeconds = 0.1;
+    static final double encoderRespondingTimeSeconds = 0.15;
+
+    static final int climbEncoderOpen = 4250;
+
+
 
 
     // This function turns away from lender
-    public void turnAwayFromLender() throws InterruptedException{
-        encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -40);
-        turnByGyro(TURN_SPEED, angelForGyro(90));
-    }
+    //public void turnAwayFromLender() throws InterruptedException{
+    //    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -40);
+    //    turnByGyro(TURN_SPEED, angelForGyro(90));
+    //}
+
     // Function will be used to keep track of the gyro positions.
-    public int angelForGyro(int degreesWanted) throws InterruptedException{
+    public int angelForGyro(double degreesWanted) throws InterruptedException{
         gyroDegrees=(int)(gyroDegrees+degreesWanted);
         return gyroDegrees;
     }
@@ -154,6 +159,103 @@ public abstract class RobotFunctions extends LinearOpMode
                     robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
                 }
 
+
+                    // Stop all motion;
+                    robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+
+                // Turn off RUN_TO_POSITION
+                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+        }catch (InterruptedException e) {
+            throw new InterruptedException();
+        }
+    }
+
+
+    public void steerDrive(double Speed, double Distance, int Angle, int steer) throws InterruptedException{
+        try {
+        double distancePerTime = Distance/steer;
+        int anglePerTime = Angle/steer;
+
+        for (int times=0; times<steer; times++){
+            gyroDrive(Speed,distancePerTime,angelForGyro((anglePerTime*times)));
+        }
+        robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+        }catch (InterruptedException e){
+            throw new InterruptedException();
+        }
+
+    }
+
+    public void gyroDriveSteer ( double speed,
+                                 double Distance,
+                                 double angle, int timesSteer) throws InterruptedException{
+        try{
+            int moveCounts;
+            double max;
+            double error;
+            double steer;
+            double leftSpeed;
+            double rightSpeed;
+            double anglePerTime = angle/timesSteer;
+            double distancePerTime = Distance/timesSteer;
+            double times=1;
+
+            // Ensure that the opmode is still active
+            if (opModeIsActive()) {
+
+                // Determine new target position, and pass to motor controller
+                moveCounts = (int) (Distance);
+                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+
+
+                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                // start motion.
+                speed = Range.clip(abs(speed), 0.0, 1.0);
+
+                robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+
+                // keep looping while we are still active, and BOTH motors are running.
+                while (opModeIsActive() &&
+                        (robot.driveLeftFront.isBusy()
+                                && robot.driveLeftBack.isBusy()
+                                && robot.driveRightFront.isBusy()
+                                && robot.driveRightBack.isBusy())) {
+
+                    if(robot.driveLeftFront.getCurrentPosition()>(distancePerTime)*times){
+                        times=times+1;
+                    }
+                    telemetry.addData("steer",anglePerTime*times);
+                    telemetry.addData("times",times);
+                    telemetry.update();
+                    // adjust relative speed based on heading error.
+                    error = getError(anglePerTime*times);
+                    steer = getSteer(error, P_DRIVE_COEFF);
+
+                    // if driving in reverse, the motor correction also needs to be reversed
+                    if (Distance < 0)
+                        steer *= -1.0;
+
+                    leftSpeed = speed - steer;
+                    rightSpeed = speed + steer;
+
+                    // Normalize speeds if either one exceeds +/- 1.0;
+                    max = Math.max(abs(leftSpeed), abs(rightSpeed));
+                    if (max > 1.0) {
+                        leftSpeed /= max;
+                        rightSpeed /= max;
+                    }
+                    telemetry.addData("left speed",leftSpeed);
+                    telemetry.addData("right speed",rightSpeed);
+                    telemetry.update();
+
+                    robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
+                    robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
+                }
+
                 // Stop all motion;
                 robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
 
@@ -162,6 +264,14 @@ public abstract class RobotFunctions extends LinearOpMode
             }
         }catch (InterruptedException e) {
             throw new InterruptedException();
+        }
+    }
+
+    public void toPosition(double speed, DcMotor motor,double ticks){
+        double getCurrentPosition= motor.getCurrentPosition();
+        motor.setPower(speed);
+        while (opModeIsActive() && getCurrentPosition<ticks ){
+
         }
     }
 
@@ -328,20 +438,20 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
-    //
+    /*
     public void driveByGyro(double speed, double Distance, double angle) throws InterruptedException
     {
-        gyroDrive(speed, Distance, angle);
+        gyroDrive(speed, Distance, angle,true);
         turnByGyro(TURN_SPEED,angle);
     }
+    */
 
     /** Activate Motors By Encoder Functions **/
 
     // Drive side ways by encoder function.
     public void encoderSideWaysDrive(double speed,
-                                     double Distance) throws InterruptedException
+                                     double Distance, boolean stop) throws InterruptedException
     {
-
         try{
             robot.setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
@@ -369,8 +479,10 @@ public abstract class RobotFunctions extends LinearOpMode
                                 && robot.driveRightBack.isBusy())) {
                     Thread.sleep(threadSleepTimeMS);
                 }
-                // Stop all motion;
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                if(stop){
+                    // Stop all motion;
+                    robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                }
                 // Turn off RUN_TO_POSITION
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -436,6 +548,7 @@ public abstract class RobotFunctions extends LinearOpMode
     public void encoderLift(double speed, int ticks) throws InterruptedException {
         try{
             timeRespons.reset();
+            double liftFirstPosition = robot.lift.getCurrentPosition();
             double liftLastPosition = robot.lift.getCurrentPosition();
             double liftCurrentPosition;
 
@@ -464,7 +577,8 @@ public abstract class RobotFunctions extends LinearOpMode
                                 liftCurrentPosition < (liftLastPosition+encoderTicksRange)){
                             // Stop all motion;
                             robot.lift.setPower(0);
-                            throw new InterruptedException("lift");
+                            break;
+
                         }
                         liftLastPosition = robot.push.getCurrentPosition();
                         timeRespons.reset();
@@ -488,12 +602,12 @@ public abstract class RobotFunctions extends LinearOpMode
     public void liftUntilStuck (double speed) throws InterruptedException{
         try {
             timeRespons.reset();
+            double liftFirstPosition = robot.lift.getCurrentPosition();
             double liftLastPosition = robot.lift.getCurrentPosition();
             double liftCurrentPosition = 0;
             robot.lift.setPower(speed);
             boolean Exit = false;
             while (!Exit) {
-
                 if (timeRespons.seconds() > encoderRespondingTimeSeconds) {
                     telemetry.addData("liftCurrentPosition time",liftCurrentPosition);
                     liftCurrentPosition = robot.lift.getCurrentPosition();
@@ -501,9 +615,16 @@ public abstract class RobotFunctions extends LinearOpMode
                          (liftCurrentPosition < (liftLastPosition + encoderTicksRange))) {
                         // Stop all motion;
                         robot.lift.setPower(0);
-                        Exit = true;
-                        telemetry.addData("liftCurrentPosition stop",liftCurrentPosition);
-                        break;
+                        if((liftFirstPosition-encoderTicksRange) < liftCurrentPosition &&
+                                liftCurrentPosition < (liftFirstPosition+encoderTicksRange)) {
+                            telemetry.addData("FORK!","ERROR- STUPID MOTOR GOT STUCK");
+                            telemetry.update();
+                            throw new InterruptedException("lift");
+                        }else {
+                            Exit = true;
+                            telemetry.addData("liftCurrentPosition stop", liftCurrentPosition);
+                            break;
+                        }
                     }
                     liftLastPosition = robot.lift.getCurrentPosition();
                     timeRespons.reset();
@@ -518,6 +639,37 @@ public abstract class RobotFunctions extends LinearOpMode
             robot.lift.setPower(0);
             throw new InterruptedException("lift");
         }
+    }
+
+    public void liftUntilStuckBIT(double speed){
+        try {
+            liftUntilStuck(speed);
+        }catch (InterruptedException e){
+            telemetry.addData("INTERRUPT",e.getMessage());
+            try {
+                if(e.getMessage().equals("lift"))
+                telemetry.addData("ERROR","MOTOR BIT CATCH");
+                telemetry.update();
+                liftUntilStuck(speed);
+            }catch (InterruptedException a){
+
+            }
+        }
+    }
+
+
+    public void senderGood(double speed, int ticks){
+        if (opModeIsActive()) {
+            double mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
+            robot.mineralSend.setPower(abs(speed));
+            while (mineralSendCurrentPosition<ticks){
+                mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
+            }
+            robot.mineralSend.setPower(0);
+
+        }
+
+
     }
 
     // Send motor by encoder function.
@@ -545,6 +697,8 @@ public abstract class RobotFunctions extends LinearOpMode
                 // onto the next step, use (isBusy() || isBusy()) in the loop test.
                 while (opModeIsActive() &&
                         (robot.mineralSend.isBusy())){
+                    telemetry.addData("encoder",robot.mineralSend.getCurrentPosition());
+                    telemetry.update();
 
                     mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
                     if(timeRespons.seconds()>0.5){
@@ -569,7 +723,7 @@ public abstract class RobotFunctions extends LinearOpMode
             }
         }catch (InterruptedException e) {
             throw new InterruptedException("mineralSend");
-        }//im blackie and im know it
+        }
     }
 
     public boolean extrusionsStuck(){
@@ -659,12 +813,9 @@ public abstract class RobotFunctions extends LinearOpMode
                 while (opModeIsActive() &&
                         (robot.climbMotor.isBusy())){
                     Thread.sleep(threadSleepTimeMS);
-                    if (didInit==false){
-                        //startRobotInit();
-                        didInit= true;
-                    }
+
                     // Activate Vision and check where is the gold mineral. Save the position.
-                    //getStartGoldMineralPosition = visionProcessing();
+                    //StartGoldMineralPosition = visionProcessing();
                 }
 
                 // Stop all motion;
@@ -700,12 +851,15 @@ public abstract class RobotFunctions extends LinearOpMode
         robot.setAllMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void pushClose() throws InterruptedException{
+    public void pushClose(double speed) throws InterruptedException{
         try{
             while (robot.touchPusher.getState()) {
-                robot.push.setPower(1);
-                Thread.sleep(threadSleepTimeMS);
+                robot.push.setPower(speed);
+                Thread.sleep(0);
             }
+            telemetry.addData("CLICK","jhghgg");
+            telemetry.update();
+            robot.push.setPower(0);
         }catch (InterruptedException e) {
             throw new InterruptedException();
         }
@@ -760,7 +914,7 @@ public abstract class RobotFunctions extends LinearOpMode
 
     public void mineralUp() throws InterruptedException{
         try {
-            pushClose();
+            pushClose(1);
             liftUntilStuck(1);
             telemetry.update();
             robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
@@ -771,10 +925,10 @@ public abstract class RobotFunctions extends LinearOpMode
     }
 
 
-    public void TelementryRobotStartStatus(){
+    public void TelemetryRobotStartStatus(){
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Version", robot.Version);
-        telemetry.addData("Apollo", "Ready");
+        telemetry.addData("Apollo", "Robot is ready! good luck!");
         telemetry.update();
     }
 

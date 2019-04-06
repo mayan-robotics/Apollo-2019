@@ -1,12 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-
-@Autonomous(name="Apollo: Auto TEST", group="Apollo")
-public class AutoTest extends AutoMain {
+@Autonomous(name="Apollo: Auto Steer", group="Apollo")
+public class AutoTestSTEER extends AutoMain {
     Thread  during = new during();
     Thread  duringTwo = new duringTwo();
 
@@ -15,12 +13,16 @@ public class AutoTest extends AutoMain {
         TOGOLDMINERAL,
         LIFTUP,
         DRIVEFORWARD,
-        LIFTDOWN
+        LIFTDOWN,
+        GRABMINERAL,
+        PUSH
     }
 
     public enum threadActionsTwo{
         LIFTDOWN
     }
+
+    double  PUSHSPEED;
 
     GoldPosition startGoldMineralPosition;
 
@@ -33,60 +35,8 @@ public class AutoTest extends AutoMain {
         apolloInit();
 
         waitForStart();
-        robot.push.setPower(1);
-        waitSeconds(2);
-        pushClose(-1);
-        waitSeconds(999);
 
-
-
-        startGoldMineralPosition=GoldPosition.LEFT;
-        currentActionThread=threadActions.TOGOLDMINERAL;
-        during.start();
-
-        turnAwayFromLender(startGoldMineralPosition);
-        //encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -40);
-        //gyroTurn(TURN_SPEED,angelForGyro(90+26));
-
-
-        robot.push.setPower(1);
-        waitSeconds(2);
-        robot.push.setPower(0);
-        waitSeconds(1);
-
-
-        //waitSeconds(0.5);
-
-        during.interrupt();
-
-
-        currentActionThread=threadActions.LIFTUP;
-        during.start();
-
-        robot.mineralGrab.setPosition(STOP);
-
-        turnByGyro(TURN_SPEED,angelForGyro(-getTheGyroAngleToTurnToTheGoldMineral(startGoldMineralPosition)));
-
-
-        gyroDrive(1,45,angelForGyro(0));
-
-        goFromCraterToDepot(-1);
-
-        currentActionThreadTwo=threadActions.LIFTDOWN;
-        duringTwo.start();
-        //waitSeconds(2);
-        currentActionThread=threadActions.DRIVEFORWARD;
-
-
-        during.start();
-        robot.push.setPower(1);
-        waitSeconds(2);
-        robot.mineralGrab.setPosition(BACKWARDS);
-
-        robot.push.setPower(0);
-        waitSeconds(1);
-
-
+        gyroDriveSteer(0.8,500, angelForGyro(90),40);
 
 
         //waitSeconds(10);
@@ -126,6 +76,18 @@ public class AutoTest extends AutoMain {
                             gyroDrive(DRIVE_SPEED,150,angelForGyro(0));
                             //liftDown();
                         }
+                        if(currentActionThread == threadActions.GRABMINERAL){
+                            PUSHSPEED=-1;
+                            currentActionThread= threadActions.PUSH;
+                            duringTwo.start();
+                            liftUntilStuck(1);
+                            encoderLift(1, (robot.lift.getCurrentPosition() - 100));
+
+                            robot.blockMineralServo.setPosition(robot.block);   // Set Mode of servo to not block minerals.
+                            robot.mineralGrab.setPosition(FORWARD);
+                            telemetry.addData("Finished1", "here");
+                            telemetry.update();
+                        }
                     }catch (InterruptedException e){
                         telemetry.addData("Interrupt",e);
                         telemetry.update();
@@ -159,6 +121,13 @@ public class AutoTest extends AutoMain {
                         liftDown();
                         //robot.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);                               waitSeconds(1);
                         //robot.mineralGrab.setPosition(FORWARD);
+                    }
+                    if(currentActionThread== threadActions.PUSH){
+                        waitSeconds(0.2);
+                        robot.push.setPower(PUSHSPEED);
+                        //waitSeconds(0.5);
+                        robot.mineralGrab.setPosition(FORWARD);
+                        waitSeconds(1.5);
                     }
                 }catch (InterruptedException e){
                     telemetry.addData("Interrupt",e);

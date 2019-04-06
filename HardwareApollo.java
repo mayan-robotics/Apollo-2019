@@ -56,7 +56,7 @@ public class HardwareApollo {
                                                         (WHEEL_DIAMETER_INCHES * 3.1415);
     // Mineral Blocker Positions
     static final double block = 0;
-    static final double dontBlock = 0.35;
+    static final double dontBlock = 0.2;
 
     // Gold mineral X positions limits for camera.
     static final int MineralMiddleLimitLeft = 650 ;
@@ -70,17 +70,13 @@ public class HardwareApollo {
     static final int climbOpenPosition = 37220;
     static final int climbLanderPosition = 25000;
 
-    // mineral pass positions
-    static final double mineralPassLeftOpen = 0.4;
-    static final double mineralPassRightOpen = 0.8;
-    static final double mineralPassLeftClose = 1;
-    static final double mineralPassRightClose = 0;
+
 
     // mineral box positions.
-    static final double mineralBoxServoOpen = 0.75 ; //A
-    static final double mineralBoxServoClose = 0.25; //Y
+    static final double mineralBoxServoOpen = 0.60 ; //A
+    static final double mineralBoxServoClose = 0.35; //Y
 
-    static final String Version = "1.3.24" ;
+    static final String Version = "1.4.4" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -141,6 +137,10 @@ public class HardwareApollo {
         lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         mineralGrab.setDirection(Servo.Direction.REVERSE);     // Reversed motor
         mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
+        climbMotor.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
+
+        climbMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         // Set all motors to zero power
         setDriveMotorsPower(0, DRIVE_MOTOR_TYPES.ALL);

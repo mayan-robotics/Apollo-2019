@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 
 @Autonomous(name="Apollo: Auto Depot Other Crater", group="Apollo")
+@Disabled
 public class AutoDepotOtherCrater extends AutoMain {
 
     @Override
