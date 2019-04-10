@@ -16,7 +16,7 @@ public class FreeFlow extends RobotFunctions {
     double DriveY = 0;
     double DriveX = 0;
     double Degree = 0;
-
+// ASDFSHGLRKJSDBNDFKSJDGNVKDJ,SBFGNVULKEJRDFSNXGFLUCJKER,DSNX LFKJVCNFD .LCXKJ,NV FKJD
     static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
 
 
@@ -25,7 +25,7 @@ public class FreeFlow extends RobotFunctions {
 
         robot.init(hardwareMap);
 
-        telemetry.addData("Finish", "done init ");
+        telemetry.addData("Finish", "done init ");//hi
         telemetry.update();
         waitForStart();
 
@@ -46,7 +46,8 @@ public class FreeFlow extends RobotFunctions {
             telemetry.addData("Degree", Degree);
             telemetry.update();
         }
-    }
+    }//hi
 
+    int marijuan = 0;
 
 }

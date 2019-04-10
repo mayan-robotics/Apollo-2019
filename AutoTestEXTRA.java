@@ -32,11 +32,13 @@ public class AutoTestEXTRA extends AutoMain {
     threadActions currentActionThread;
     threadActions currentActionThreadTwo;
 
-    @Override//mjywgr,2yurd
+    @Override
     public void runOpMode() throws InterruptedException {
         apolloInit();
 
         waitForStart();
+        parkForBlockingRobot();
+        waitSeconds(999);
 
         //currentActionThread=threadActions.GRABMINERAL;
         robot.blockMineralServo.setPosition(robot.block);   // Set Mode of servo to not block minerals.

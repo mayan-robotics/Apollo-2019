@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import java.io.WriteAbortedException;
 
 
-@Autonomous(name="Apollo: Auto Two", group="Apollo Autonomous")
+@Autonomous(name="Apollo: Auto 2 ", group="Apollo Autonomous")
 public class AutoTwo extends AutoMain {
 
     @Override
@@ -16,8 +16,8 @@ public class AutoTwo extends AutoMain {
 
         setGameParameters(GamePositions.CRATER,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
 
-        //climbDown();
-        startGoldMineralPosition=GoldPosition.LEFT;
+        climbDown();
+        //startGoldMineralPosition=GoldPosition.LEFT;
         //turnToGoldMineral();
         //waitSeconds(2);
         mainMoveGoldMineral();
@@ -28,9 +28,16 @@ public class AutoTwo extends AutoMain {
 
         getReadyToGrabMinerals();
 
-        //waitSeconds(2);
 
-        grabMineralsAndPutInLander();
+        //grabMineralsAndPutInLander();
+        grab();
+        putMineralsInLander();
+        betweenMineralGrab();
+        grab();
+        putMineralsInLander();
+        //grabMineralsAndPutInLander();
+        betweenMineralGrab();
+        liftDown();
 
 
         waitSeconds(1);

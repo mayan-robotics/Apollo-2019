@@ -33,6 +33,21 @@ public class AutoTest extends AutoMain {
         apolloInit();
 
         waitForStart();
+
+        setGameParameters(GamePositions.DEPOT,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
+
+        grab();
+        putMineralsInLander();
+        betweenMineralGrab();
+        grab();
+        putMineralsInLander();
+        //grabMineralsAndPutInLander();
+        betweenMineralGrab();
+        liftDown();
+
+
+        /*
+        waitSeconds(999);
         robot.push.setPower(1);
         waitSeconds(2);
         pushClose(-1);
@@ -92,6 +107,7 @@ public class AutoTest extends AutoMain {
         //waitSeconds(10);
         //during.interrupt();
 
+*/
 
     }
 

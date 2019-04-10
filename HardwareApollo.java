@@ -74,9 +74,9 @@ public class HardwareApollo {
 
     // mineral box positions.
     static final double mineralBoxServoOpen = 0.60 ; //A
-    static final double mineralBoxServoClose = 0.35; //Y
+    static final double mineralBoxServoClose = 0.2; //Y
 
-    static final String Version = "1.4.4" ;
+    static final String Version = "1.4.10" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;

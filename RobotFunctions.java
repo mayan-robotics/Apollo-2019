@@ -57,10 +57,10 @@ public abstract class RobotFunctions extends LinearOpMode
     final static double BACKWARDS = 0.2 ;
     final static double STOP = 0 ;
 
-    static final double encoderTicksRange = 5;
-    static final double encoderRespondingTimeSeconds = 0.15;
+    static final double encoderTicksRange = 2;
+    static final double encoderRespondingTimeSeconds = 0.25;
 
-    static final int climbEncoderOpen = 4250;
+    static final int climbEncoderOpen = 4300;
 
 
 
@@ -450,7 +450,7 @@ public abstract class RobotFunctions extends LinearOpMode
 
     // Drive side ways by encoder function.
     public void encoderSideWaysDrive(double speed,
-                                     double Distance, boolean stop) throws InterruptedException
+                                     double Distance) throws InterruptedException
     {
         try{
             robot.setDriveMotorsMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -479,10 +479,9 @@ public abstract class RobotFunctions extends LinearOpMode
                                 && robot.driveRightBack.isBusy())) {
                     Thread.sleep(threadSleepTimeMS);
                 }
-                if(stop){
                     // Stop all motion;
                     robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                }
+
                 // Turn off RUN_TO_POSITION
                 robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -641,18 +640,19 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
-    public void liftUntilStuckBIT(double speed){
+    public void liftUntilStuckBIT(double speed) throws InterruptedException{
         try {
             liftUntilStuck(speed);
         }catch (InterruptedException e){
             telemetry.addData("INTERRUPT",e.getMessage());
+            telemetry.update();
             try {
-                if(e.getMessage().equals("lift"))
+                if(e.getMessage().equals("java.lang.InterruptedExceptionlift"))
                 telemetry.addData("ERROR","MOTOR BIT CATCH");
                 telemetry.update();
                 liftUntilStuck(speed);
             }catch (InterruptedException a){
-
+                throw new InterruptedException();
             }
         }
     }
@@ -829,8 +829,9 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
+    /*
     // Function turns on the camera and enables processing.
-    public void InitMyVision() throws InterruptedException{
+    public void InitMyVision(){
         vision = new MineralVision();
         // Start to display image of camera.
         vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance(), 0);
@@ -838,6 +839,7 @@ public abstract class RobotFunctions extends LinearOpMode
         // start the vision system.
         vision.enable();
     }
+    */
 
     // Gyro angle
     public float GetGyroAngle() throws InterruptedException{
@@ -853,9 +855,9 @@ public abstract class RobotFunctions extends LinearOpMode
 
     public void pushClose(double speed) throws InterruptedException{
         try{
+            robot.push.setPower(speed);
             while (robot.touchPusher.getState()) {
-                robot.push.setPower(speed);
-                Thread.sleep(0);
+                 Thread.sleep(2);
             }
             telemetry.addData("CLICK","jhghgg");
             telemetry.update();

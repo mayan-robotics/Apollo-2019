@@ -102,7 +102,6 @@ public class VisionGoldPositionTest extends OpMode {
         contoursGold.clear();
         vision.getGoldContours(contoursGold);
 
-
             if ((vision.goldMineralFound() == true) && (contoursGold != null)) {
                 if (!contoursGold.isEmpty()) {
                     if (contoursGold.size() >= 1) {
@@ -114,12 +113,12 @@ public class VisionGoldPositionTest extends OpMode {
                             //telemetry.addData("Gold Position X", goldXPosition);
                             telemetry.addData("Gold Position Y", goldYPosition);
 
-                            if (goldYPosition < 300) {
+                            if (goldYPosition > 310) {
                                 telemetry.addData("Gold Position", "Left");
-                                return GoldPosition.LEFT;
-                            } else if (goldYPosition > 300) {
-                                telemetry.addData("Gold Position", "Right");
                                 return GoldPosition.RIGHT;
+                            } else if (goldYPosition < 310) {
+                                telemetry.addData("Gold Position", "Right");
+                                return GoldPosition.LEFT;
                             } //else if (goldYPosition > 450 && goldYPosition < 650) {
                               //  telemetry.addData("Gold Position", "Middle");
                               //  return GoldPosition.MIDDLE;

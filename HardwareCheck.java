@@ -280,7 +280,7 @@ public class HardwareCheck extends RobotFunctions{
             }
             else if(gamepad1.dpad_up){
                 try {
-                    encoderSideWaysDrive(1,30,true);
+                    encoderSideWaysDrive(1,30);
                 }catch (InterruptedException e) { }
             }
             else {

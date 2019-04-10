@@ -1,5 +1,5 @@
 package org.firstinspires.ftc.teamcode;
-                                                                                                                                                                                                                //HI
+
 import android.widget.Button;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -41,6 +41,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     int PUSHSPEED = 1;
 
     boolean sevoblock;
+    double pushPower;
 
 
 
@@ -81,10 +82,10 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
 
             GraberControl();
             ExtrusionsControl();
-            pushExtrusionsControl();
+            pushExtrusionsControl(runtime);
             MineralBoxControl();
             ServoBlockMineralsControl();
-            LiftControl(runtime);
+            LiftControl();
             GeneralRobotActions();
 
 
@@ -100,7 +101,13 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             TelemetryRobotStatus();
         }
 
+        moveMinerals.interrupt();
+        climb.interrupt();
+
+
     }
+
+
 
 
 
@@ -131,7 +138,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         }/* else if (LeftStickX > joyStickLimitPoints && (Math.abs(LeftStickY) > joyStickLimitPoints) &&
                 (RightStickX > joyStickLimitPoints && Math.abs(RightStickY) > joyStickLimitPoints)) {       // If both joysticks are pushed to a right conner. drive diagonal right.
             robot.setDriveMotorsPower(LeftStickY * speedFactor, HardwareApollo.DRIVE_MOTOR_TYPES.DIAGONAL_RIGHT);
-            telemetry.addData("Drive", "DIAGONAL_RIGHT"); //ME TO KITCHEN
+            telemetry.addData("Drive", "DIAGONAL_RIGHT");
         }*/ else if ((Math.abs(LeftStickX) > Math.abs(LeftStickY) && Math.abs(LeftStickX) > joyStickLimitPoints && Math.abs(LeftStickY) < 0.8) &&
                 (Math.abs(RightStickX) > Math.abs(RightStickY) && Math.abs(RightStickX) > joyStickLimitPoints && Math.abs(RightStickY) < 0.8 &&
                         ((RightStickX < 0 && LeftStickX < 0) || (RightStickX > 0 && LeftStickX > 0)))) {       // If both joysticks are pushed to the side. drive sideways.
@@ -212,19 +219,27 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         }
     }
 
-    public void pushExtrusionsControl() {
+    public void pushExtrusionsControl(ElapsedTime runtime) {
+
+        if(pushPower<1) {
+            pushPower = (runtime.seconds()/2);
+        }else{
+            pushPower=1;
+            }
         if (!moveMineralsInUse){
             if (-gamepad2.right_stick_y < -0.2 && !buttonClicked) {
-                telemetry.addData("YARVOA","YARBOA1");
-                telemetry.update();
-                robot.push.setPower(gamepad2.right_stick_y* 0.2);
+
+                robot.push.setPower(0.7);
+                //robot.push.setPower(gamepad2.right_stick_y* 0.6);
                 //robot.blockMineralServo.setPosition(robot.block);
             } else if (-gamepad2.right_stick_y > 0.2 ) {
-                telemetry.addData("YARVOA","YARBOA2");
-                telemetry.update();
+                runtime.reset();
+                //telemetry.addData("YARVOA","YARBOA2");
+                //telemetry.update();
                 buttonClicked = false;
                 robot.push.setPower(gamepad2.right_stick_y);
             } else {
+                runtime.reset();
                 if (!moveMineralsInUse) {
                     robot.push.setPower(0);
                     robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -240,7 +255,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         } else if (gamepad1.a) {
             robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
         }else if(gamepad1.x){
-            robot.mineralBoxServo.setPosition(1);
+            robot.mineralBoxServo.setPosition(0.9);
         }else if(gamepad1.b){
 
         }
@@ -250,7 +265,7 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         // Mineral blocker control. Game pad 2 bumper.
         if (gamepad2.left_bumper) {
             robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
-        } else if (!moveMineralsInUse && !sevoblock){
+        } else{
             robot.blockMineralServo.setPosition(robot.block);   //Set Mode of servo to block minerals.
         }
     }
@@ -266,20 +281,13 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
     }
 
 
-    public void LiftControl(ElapsedTime runtime){
+    public void LiftControl(){
         //telemetry.addData("time",runtime.seconds());
         //telemetry.update();
         // Mineral lift Control. Game pad 2, left stick.
         if (-gamepad2.left_stick_y < -0.4 ) {
-            if(runtime.seconds()> 0.1){
-                telemetry.addData("YARBOA","SERVO");
-                telemetry.update();
-                sevoblock=true;
-                robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
-            }
             robot.lift.setPower(-gamepad2.left_stick_y );
         } else if (-gamepad2.left_stick_y > 0.4  ){
-            runtime.reset();
             robot.lift.setPower(-gamepad2.left_stick_y );
         }else if(gamepad2.a) {
             robot.lift.setPower(1);
@@ -287,7 +295,6 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
             robot.lift.setPower(-1);
         } else{
             if(!moveMineralsInUse) {
-                runtime.reset();
                 robot.lift.setPower(0);
                 //robot.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
             }
@@ -357,12 +364,14 @@ public class ApolloTeleopTerrorNew extends RobotFunctions {
         }else {
             if(moveMineralsThreadActive){
                 moveMinerals.interrupt();
+                moveMineralsInUse=false;
             }
         }
 
         if(gamepad2.right_bumper){
             if(OutThread) {
                 moveMinerals.interrupt();
+                moveMineralsInUse=false;
             }
         }
     }
