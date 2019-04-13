@@ -14,19 +14,9 @@ public class AutoFive extends AutoMain {
 
         setGameParameters(GamePositions.CRATER,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
         climbDown();
-        //startGoldMineralPosition=GoldPosition.MIDDLE;
-        //turnToGoldMineral();
-        //waitSeconds(2);
-        mainMoveGoldMineral();
-
+        moveGoldMineralCraterWithout();
         blockBetween();
-
-
-
-
         parkForBlockingRobot();
-        //waitSeconds(2);
-
     }
 
 }

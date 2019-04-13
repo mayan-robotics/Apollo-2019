@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import java.io.WriteAbortedException;
-
 
 @Autonomous(name="Apollo: Auto 2 ", group="Apollo Autonomous")
 public class AutoTwo extends AutoMain {
@@ -14,36 +12,26 @@ public class AutoTwo extends AutoMain {
 
         waitForStart();
 
-        setGameParameters(GamePositions.CRATER,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
+        setGameParameters(GamePositions.DEPOT, GamePositions.OTHERCRATER, GamePositions.PARKFORWADRS);
 
         climbDown();
-        //startGoldMineralPosition=GoldPosition.LEFT;
-        //turnToGoldMineral();
-        //waitSeconds(2);
         mainMoveGoldMineral();
-
-        telemetry.addData("HEHEHHIO","IHDIU");
+        telemetry.addData("heweqerc", "werfervver");
         telemetry.update();
+
+
+        //waitSeconds(2);
+        mainPutMarker();
+
+        telemetry.addData("finished", "done");
+        telemetry.update();
+
+        //waitSeconds(1);
+        backToCraterFromDepot();
         //waitSeconds(2);
 
-        getReadyToGrabMinerals();
-
-
-        //grabMineralsAndPutInLander();
-        grab();
-        putMineralsInLander();
-        betweenMineralGrab();
-        grab();
-        putMineralsInLander();
-        //grabMineralsAndPutInLander();
-        betweenMineralGrab();
-        liftDown();
-
-
-        waitSeconds(1);
-        //backToCraterFromDepot();
-        //waitSeconds(2);
+    during.interrupt();
+    duringTwo.interrupt();
 
     }
-
 }

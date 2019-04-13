@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
+
+import java.net.PortUnreachableException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +27,6 @@ import java.util.List;
 
 public abstract class AutoMain extends RobotFunctions
 {
-    //HardwareApollo robot = new HardwareApollo(); // use Apollo's hardware
-    //RobotFunctions functions = new RobotFunctions(); // use Apollo's hardware
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -55,11 +55,19 @@ public abstract class AutoMain extends RobotFunctions
     boolean didInit = false;    // Boolean we use to know if we finished our init.
     int gyroDegrees = 0;    // Counter of gyro angle
 
-    static final int gyroAngleForGoldMineralLeft = 32;
+    static final int gyroAngleForGoldMineralLeft = 33;
     static final int gyroAngleForGoldMineralMiddle = 0;
-    static final int gyroAngleForGoldMineralRight = -32;
+    static final int gyroAngleForGoldMineralRight = -33;
+
+
+
+    static final int craterGyroAngleForGoldMineralLeft = 30;
+    static final int craterGyroAngleForGoldMineralMiddle = 0;
+    static final int craterGyroAngleForGoldMineralRight = -30;
 
     //static final int climbEncoderOpen = 5000;
+
+    Thread  myStop = new myStop();
 
     Thread  during = new during();
 
@@ -77,6 +85,7 @@ public abstract class AutoMain extends RobotFunctions
     public enum ThreadActions{
         VISIONCLIMB,
         LIFTSTART,
+        DRIVEFORWARDMARKER,
         TOGOLDMINERAL,
         EXTRUSIONS,
         LIFTUP,
@@ -138,6 +147,7 @@ public abstract class AutoMain extends RobotFunctions
 
         // Send telemetry message to signify robot is ready;
         TelemetryRobotStartStatus();
+
     }
 
 
@@ -190,8 +200,33 @@ public abstract class AutoMain extends RobotFunctions
 
     }
 
-    public void mainMoveGoldMineral() {
+    // This function turns away from lander
+    public void turnAwayFromLenderServo(){
+        try {
+            gyroDrive(DRIVE_SPEED, 20, angelForGyro(0));
+            encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -30);
+            gyroDrive(DRIVE_SPEED, -30, angelForGyro(0));
+            turnByGyro(TURN_SPEED, angelForGyro(90));
+        }catch (InterruptedException e) { }
+    }
 
+
+    public void moveMineralByServo(){
+        try {
+            switch (startGoldMineralPosition) {
+                case LEFT:
+                    break;
+                case RIGHT:
+                    break;
+
+            }
+
+            gyroDrive(DRIVE_SPEED, 100, angelForGyro(0));
+        }catch (InterruptedException e){}
+    }
+
+    public void mainMoveGoldMineral() throws InterruptedException {
+        try {
             switch (startRobotPosition) {
                 case CRATER:
                     moveGoldMineralCrater();
@@ -199,34 +234,35 @@ public abstract class AutoMain extends RobotFunctions
                 case DEPOT:
                     moveGoldMineralDepot();
             }
+        }catch (InterruptedException e){
+            throw new InterruptedException();
+        }
     }
 
-    public void moveGoldMineralCrater(){
+
+
+    public void moveGoldMineralCrater() throws InterruptedException {
         try {
             telemetry.addData("here","yaroa");
             telemetry.update();
             RunThread(during, ThreadActions.LIFTDOWN);
-            waitUntilThreadIsNotActive(duringTwo);
+            //waitUntilThreadIsNotActive(duringTwo);
             telemetry.addData("herwooooooooe","yaroa");
             telemetry.update();
             turnAwayFromLender(startGoldMineralPosition);
             waitUntilThreadIsNotActive(during);
             RunThread(duringTwo,ThreadActions.EXTRUSIONS);
             RunThread(during, ThreadActions.DRIVEFORWARD);
+
             robot.push.setPower(-1);
             waitSeconds(0.5);
-            pushClose(0.6);
-            /*
-            robot.push.setPower(-1);
-            waitSeconds(0.2);
-            robot.push.setPower(0);
-            */
 
-            //during.interrupt();
+            pushClose(0.6);
+
             RunThread(during, ThreadActions.DRIVEBACKWARD);
 
         }catch (InterruptedException e){
-
+            throw new InterruptedException();
         }
     }
 
@@ -234,8 +270,12 @@ public abstract class AutoMain extends RobotFunctions
     public void moveGoldMineralDepot() {
         try {
             if(startGoldMineralPosition==GoldPosition.MIDDLE) {
-                RunThread(duringTwo, ThreadActions.DRIVEFORWARD);
+                //RunThread(duringTwo, ThreadActions.DRIVEFORWARD);
+
+                //duringTwo.interrupt();
+                //waitUntilThreadIsNotActive(duringTwo);
                 moveGoldMineralCrater();
+
                 robot.mineralGrab.setPosition(BACKWARDS);
                 gyroDrive(DRIVE_SPEED, 100, angelForGyro(0));
             }else{
@@ -246,16 +286,34 @@ public abstract class AutoMain extends RobotFunctions
         }
     }
 
+    public void moveGoldMineralCraterWithout(){
+        try {
+            telemetry.addData("here","yaroa");
+            telemetry.update();
+            RunThread(during, ThreadActions.LIFTDOWN);
+            waitUntilThreadIsNotActive(duringTwo);
+            telemetry.addData("herwooooooooe","yaroa");
+            telemetry.update();
+            turnAwayFromLenderWithoutMove(startGoldMineralPosition);
+
+            robot.push.setPower(-1);
+            waitSeconds(1.6);
+
+            pushClose(0.6);
+
+        }catch (InterruptedException e){
+
+        }
+    }
+
     public void moveGoldMineralFromSideDepot(){
         try {
             RunThread(during, ThreadActions.LIFTDOWN);
             turnAwayFromLender(startGoldMineralPosition);
-            gyroDrive(DRIVE_SPEED, 115, angelForGyro(0));
-            gyroTurn(TURN_SPEED, angelForGyro(40 * depotGoldMineralTurn(startGoldMineralPosition)));
+            gyroDrive(DRIVE_SPEED, 160, angelForGyro(0));
+            gyroTurn(TURN_SPEED, angelForGyro(70 * depotGoldMineralTurn(startGoldMineralPosition)));
 
-
-            //RunThread(during, ThreadActions.MYDEPOTDRIVE);
-        }catch (InterruptedException e){
+            }catch (InterruptedException e){
 
         }
     }
@@ -270,8 +328,8 @@ public abstract class AutoMain extends RobotFunctions
                     if(startGoldMineralPosition!=GoldPosition.MIDDLE) {
                         putMarkerDepot();
                     }else {
-                        //gyroDrive(DRIVE_SPEED,-130,angelForGyro(0));
-                        waitSeconds(1.5);
+                        waitUntilThreadIsNotActive(duringTwo);
+                        waitUntilThreadIsNotActive(during);
                     }
                     break;
             }
@@ -286,13 +344,21 @@ public abstract class AutoMain extends RobotFunctions
         try {
             robot.mineralGrab.setPosition(BACKWARDS);
             waitUntilThreadIsNotActive(during);
-            RunThread(during, ThreadActions.DRIVEFORWARD);
+            RunThread(during, ThreadActions.DRIVEFORWARDMARKER);
+            //encoderPush(1,500);
+            /*
             robot.push.setPower(-1);
+            waitSeconds(0.3);
+
+            robot.push.setPower(0);
+            robot.push.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             waitSeconds(0.5);
-            pushClose(0.6);
-            waitSeconds(0.5);
+
+*/
+            waitSeconds(1.5);
+            //pushClose(0.6);
+            //waitSeconds(0.5);
             robot.mineralGrab.setPosition(STOP);
-            //RunThread(duringTwo, ThreadActions.LIFTUP);
         }catch (InterruptedException e){}
 
     }
@@ -303,13 +369,11 @@ public abstract class AutoMain extends RobotFunctions
             telemetry.addData("here","1");
             telemetry.update();
             robot.mineralGrab.setPosition(STOP);
-            telemetry.addData("here","2");
-            telemetry.update();
             waitUntilThreadIsNotActive(during);
             turnByGyro(TURN_SPEED, angelForGyro(-getTheGyroAngleToTurnToTheGoldMineral(startGoldMineralPosition)));
             telemetry.addData("here","3");
             telemetry.update();
-            gyroDrive(1, 38, angelForGyro(0));
+            gyroDrive(1, 45, angelForGyro(0));
 
             //telemetry.addData("here2","hello");
             //telemetry.update();
@@ -326,15 +390,20 @@ public abstract class AutoMain extends RobotFunctions
             robot.mineralGrab.setPosition(BACKWARDS);
             waitSeconds(2);
 
-            robot.push.setPower(1);
-            waitSeconds(0.3);
-            robot.push.setPower(0);
+            pushClose(0.6);
+
+
+            //robot.push.setPower(1);
+            //waitSeconds(0.3);
+            //robot.push.setPower(0);
             robot.mineralGrab.setPosition(STOP);
 
         }catch (InterruptedException e){
             throw new InterruptedException();
         }
     }
+
+
 
     public void fromDepotToPutMarker() throws InterruptedException{
         try {
@@ -365,6 +434,18 @@ public abstract class AutoMain extends RobotFunctions
             gyroDrive(DRIVE_SPEED, -30, angelForGyro(0));
             turnByGyro(TURN_SPEED, angelForGyro(90+
                     getTheGyroAngleToTurnToTheGoldMineral(goldPosition)));
+        }catch (InterruptedException e) { }
+    }
+
+
+    // This function turns away from lander
+    public void turnAwayFromLenderWithoutMove(GoldPosition goldPosition){
+        try {
+            gyroDrive(DRIVE_SPEED, 20, angelForGyro(0));
+            encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -30);
+            gyroDrive(DRIVE_SPEED, -30, angelForGyro(0));
+            turnByGyro(TURN_SPEED, angelForGyro(90+
+                    getTheGyroAngleToTurnToTheGoldMineralWithoutMove(goldPosition)));
         }catch (InterruptedException e) { }
     }
 
@@ -404,7 +485,7 @@ public abstract class AutoMain extends RobotFunctions
             gyroDrive(DRIVE_SPEED, 120,angelForGyro(0));
             RunThread(duringTwo, ThreadActions.LIFTDOWN);
             turnByGyro(TURN_SPEED, angelForGyro(45 * turnTo));
-            encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED,85 *turnTo);
+            encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED,100 *turnTo);
 
         }catch (InterruptedException e){
             throw new InterruptedException();
@@ -417,23 +498,22 @@ public abstract class AutoMain extends RobotFunctions
                 case CRATER:
                     if (sideParking == GamePositions.PARKFORWADRS) {
                         RunThread(during, ThreadActions.LIFTUP);
-                        gyroDrive(DRIVE_SPEED, -40, angelForGyro(0));
+                        gyroDrive(DRIVE_SPEED, -140, angelForGyro(0));
                         gyroTurn(TURN_SPEED, angelForGyro(angelForGyro(-175)));
-                        RunThread(during, ThreadActions.LIFTDOWN);
                         gyroTurn(TURN_SPEED, angelForGyro(angelForGyro(-65)));
-                        gyroDrive(DRIVE_SPEED, 60, angelForGyro(0));
+                        RunThread(during, ThreadActions.LIFTDOWN);
+                        gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
                         robot.mineralGrab.setPosition(FORWARD);
-                        waitSeconds(10);
                     } else {
-                        gyroDrive(DRIVE_SPEED, -240, angelForGyro(-3));
+                        gyroDrive(DRIVE_SPEED, -160, angelForGyro(-3));
+                        gyroDrive(0.3, -20, angelForGyro(0));
                     }
                     break;
 
                 case DEPOT:
-                    RunThread(during, ThreadActions.LIFTUP);
+                    liftUntilStuck(-1);
                     parkFromDepot();
                     break;
-
             }
 
         }catch (InterruptedException e){
@@ -448,8 +528,11 @@ public abstract class AutoMain extends RobotFunctions
                 switch (startGoldMineralPosition) {
                     case RIGHT:
                         goFromDepotToCraterFarMineralCase();
-                        encoderSideWaysDrive(DRIVE_SPEED,-40 * turnToCrater);
+
+                        killThreads();
                         liftDown();
+
+                        //grabWitoutLift();
                         break;
                     case LEFT:
                         if(sideParking == GamePositions.PARKBACKWARDS) {
@@ -457,7 +540,6 @@ public abstract class AutoMain extends RobotFunctions
                             gyroDrive(DRIVE_SPEED, -250, angelForGyro(0));
                         }else {
                             goFromDepotToCraterForwardCloseMineralCase();
-                            encoderSideWaysDrive(DRIVE_SPEED,-40 * turnToCrater);
                             grab();
                             liftDown();
                         }
@@ -465,25 +547,32 @@ public abstract class AutoMain extends RobotFunctions
                     case MIDDLE:
                         goFromDepotToCraterMiddleCase();
                         break;
-                }
 
+                }
             } else {
                 switch (startGoldMineralPosition) {
                     case RIGHT:
                         if(sideParking == GamePositions.PARKBACKWARDS) {
                             gyroTurn(TURN_SPEED, angelForGyro(40 * depotGoldMineralTurn(startGoldMineralPosition)));
                             gyroDrive(DRIVE_SPEED, -250, angelForGyro(0));
+
                         }else {
                             goFromDepotToCraterForwardCloseMineralCase();
-                            encoderSideWaysDrive(DRIVE_SPEED,-40 * turnToCrater);
                             grab();
                             liftDown();
+
                         }
                         break;
                     case LEFT:
                         goFromDepotToCraterFarMineralCase();
-                        encoderSideWaysDrive(DRIVE_SPEED,-40 * turnToCrater);
+                        //encoderSideWaysDrive(DRIVE_SPEED,-30 * turnToCrater);
+                        telemetry.addData("fffff","1");
+                        telemetry.update();
+                        killThreads();
                         liftDown();
+                        //grabWitoutLift();
+                        telemetry.addData("fffff","3");
+                        telemetry.update();
                         break;
 
                     case MIDDLE:
@@ -497,17 +586,28 @@ public abstract class AutoMain extends RobotFunctions
         }
     }
 
+
+    public void killThreads(){
+        during.interrupt();
+        duringTwo.interrupt();
+        waitUntilThreadIsNotActive(during);
+        waitUntilThreadIsNotActive(duringTwo);
+    }
+
     public void goFromDepotToCraterFarMineralCase(){
         try {
-            gyroTurn(TURN_SPEED, angelForGyro(-40 * turnToCrater));
-            gyroDrive(DRIVE_SPEED, -120, angelForGyro(0));
-            gyroTurn(TURN_SPEED, angelForGyro(-85 * turnToCrater));
+            gyroTurn(TURN_SPEED, angelForGyro(-5 * turnToCrater));
+            gyroDrive(DRIVE_SPEED, -135, angelForGyro(0));
+            gyroTurn(TURN_SPEED, angelForGyro(-78 * turnToCrater));
             gyroDrive(DRIVE_SPEED, 130, angelForGyro(0));
-            gyroTurn(TURN_SPEED, angelForGyro(38 * turnToCrater));
+            gyroTurn(TURN_SPEED, angelForGyro(36 * turnToCrater));
 
-            gyroDrive(DRIVE_SPEED, 350, angelForGyro(0 ));
-            gyroTurn(TURN_SPEED, angelForGyro(-38 * turnToCrater));
-            gyroDrive(DRIVE_SPEED, 50, angelForGyro(0));
+            gyroDrive(DRIVE_SPEED, 250, angelForGyro(0 ));
+            gyroTurn(TURN_SPEED, angelForGyro(-52 * turnToCrater));
+
+            encoderSideWaysDrive(DRIVE_SPEED,-40 * turnToCrater);
+            gyroDrive(DRIVE_SPEED,35, angelForGyro(0));
+            //gyroDrive(DRIVE_SPEED, 10, angelForGyro(0));
 
         }catch (InterruptedException e){
 
@@ -517,11 +617,12 @@ public abstract class AutoMain extends RobotFunctions
 
     public void goFromDepotToCraterForwardCloseMineralCase(){
         try {
-            gyroTurn(TURN_SPEED, angelForGyro(40 * turnToCrater ));
-            gyroDrive(DRIVE_SPEED, -200, angelForGyro(0));
+            gyroTurn(TURN_SPEED, angelForGyro(8 * turnToCrater ));
+            gyroDrive(DRIVE_SPEED, -195, angelForGyro(0));
             gyroTurn(TURN_SPEED, angelForGyro(-178 * turnToCrater ));
-            RunThread(during, ThreadActions.LIFTDOWN);
-            gyroDrive(DRIVE_SPEED, 65, angelForGyro(0));
+            encoderSideWaysDrive(DRIVE_SPEED,-60 * turnToCrater);
+            //RunThread(during, ThreadActions.LIFTDOWN);
+            gyroDrive(DRIVE_SPEED, 90, angelForGyro(0));
 
             //robot.mineralGrab.setPosition(FORWARD);
         }catch (InterruptedException e){
@@ -532,12 +633,16 @@ public abstract class AutoMain extends RobotFunctions
 
     public void goFromDepotToCraterMiddleCase(){
         try {
-            gyroDrive(DRIVE_SPEED, -140, angelForGyro(0));
+            gyroDrive(DRIVE_SPEED, -125, angelForGyro(0));
             gyroTurn(TURN_SPEED, angelForGyro(-90 * turnToCrater));
             gyroDrive(DRIVE_SPEED, 180, angelForGyro(3 * turnToCrater));
             gyroTurn(TURN_SPEED, angelForGyro(-32 * turnToCrater));
-            gyroDrive(DRIVE_SPEED, 58, angelForGyro(0));
+            encoderSideWaysDrive(DRIVE_SPEED,-95 * turnToCrater);
+            gyroDrive(DRIVE_SPEED, 75, angelForGyro(0));
+            //gyroTurn(TURN_SPEED,-10 * turnToCrater);
 
+
+            killThreads();
             grab();
             liftDown();
         }catch (InterruptedException e){
@@ -545,12 +650,13 @@ public abstract class AutoMain extends RobotFunctions
         }
     }
 
-    public void grab() {
+    public void grabWitoutLift(){
         try {
             robot.mineralGrab.setPosition(FORWARD);
             //duringTwo.interrupt();
             //waitUntilThreadIsNotActive(duringTwo);
-            RunThread(duringTwo, ThreadActions.EXTRUSIONS);
+            //RunThread(duringTwo, ThreadActions.EXTRUSIONS);
+            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
             //waitSeconds(0.2);
             waitUntilThreadIsNotActive(during);
@@ -562,6 +668,7 @@ public abstract class AutoMain extends RobotFunctions
 
             robot.mineralGrab.setPosition(FORWARD);
             RunThread(during, ThreadActions.GRABMINERAL);
+
             RunThread(duringTwo, ThreadActions.PUSH);
             //waitUntilThreadIsNotActive(during);
 
@@ -573,31 +680,99 @@ public abstract class AutoMain extends RobotFunctions
 
             //waitSeconds(0.2);
             //waitUntilThreadIsNotActive(duringTwo);
-            RunThread(duringTwo, ThreadActions.EXTRUSIONS);
             //during.interrupt();
-            during.interrupt();
+            //during.interrupt();
             waitUntilThreadIsNotActive(during);
             robot.lift.setPower(0.1);
+            robot.mineralGrab.setPosition(FORWARD);
 
             telemetry.addData("Yarboa", "here");
             telemetry.update();
-            robot.push.setPower(-0.8);
-            waitSeconds(1.8);
-            robot.lift.setPower(0);
+
+
+            telemetry.addData("Yarboa", "here");
+            telemetry.update();
+            robot.push.setPower(-1);
+            //RunThread(duringTwo, ThreadActions.EXTRUSIONS);
+            waitSeconds(1.2);
+            //robot.lift.setPower(0);
+            //encoderLift(1,0);
 
 
             //robot.push.setPower(0);
 
             telemetry.addData("HERE", "HERE");
             telemetry.update();
+            RunThread(during, ThreadActions.LIFTUP);
             pushClose(0.6);
+        }catch (InterruptedException e){
+        }
+    }
+
+    public void grab() {
+        try {
+            robot.mineralGrab.setPosition(FORWARD);
+            //duringTwo.interrupt();
+            //waitUntilThreadIsNotActive(duringTwo);
+            RunThread(duringTwo, ThreadActions.EXTRUSIONS);
+            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
+            //waitSeconds(0.2);
+            waitUntilThreadIsNotActive(during);
+            //during.interrupt();
+            //duringTwo.interrupt();
+            //waitSeconds(2);
+            //WaitUntilThreadIsActive(during);
+            //WaitUntilThreadIsActive(duringTwo);
+
+            robot.mineralGrab.setPosition(FORWARD);
+            RunThread(during, ThreadActions.GRABMINERAL);
+
+            RunThread(duringTwo, ThreadActions.PUSH);
+            //waitUntilThreadIsNotActive(during);
+
+            RunThread(during, ThreadActions.LIFTDOWNGRAB);
+
+            //gyroTurn(TURN_SPEED, 90);
+            //angelForGyro(90);
+            //gyroDegrees = 90;
+
+            //waitSeconds(0.2);
+            //waitUntilThreadIsNotActive(duringTwo);
+            //during.interrupt();
+            //during.interrupt();
+            waitUntilThreadIsNotActive(during);
+            robot.lift.setPower(0.1);
+            robot.mineralGrab.setPosition(FORWARD);
+
+            telemetry.addData("Yarboa", "here");
+            telemetry.update();
+
+
+            telemetry.addData("Yarboa", "here");
+            telemetry.update();
+            robot.push.setPower(-1);
+            //RunThread(duringTwo, ThreadActions.EXTRUSIONS);
+            waitSeconds(1.2);
+            //robot.lift.setPower(0);
+            //encoderLift(1,0);
+
+
+            //robot.push.setPower(0);
+
+            telemetry.addData("HERE", "HERE");
+            telemetry.update();
+            RunThread(during, ThreadActions.LIFTUP);
+            pushClose(0.6);
+
+            encoderMineralSend(1, 0);
 
             //waitSeconds(1);
 
 
             //encoderMineralSend(1,0);
 
-            liftUntilStuckBIT(-1);
+            //liftUntilStuckBIT(-1);
 
             robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
             robot.mineralGrab.setPosition(FORWARD);
@@ -609,23 +784,23 @@ public abstract class AutoMain extends RobotFunctions
     }
 
     public void putMineralsInLander(){
-    try {
-        RunThread(during, ThreadActions.PUTMINERALDRIVE);
-        robot.mineralGrab.setPosition(STOP);
-        senderGood(1, 1500);
-        //encoderMineralSend(1, 1500);
-        robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        try {
+            RunThread(during, ThreadActions.PUTMINERALDRIVE);
+            robot.mineralGrab.setPosition(STOP);
+            senderGood(1, 1500);
+            //encoderMineralSend(1, 1500);
+            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        //robot.mineralGrab.setPosition(STOP);
-        robot.mineralBoxServo.setPosition(robot.mineralBoxServoClose);
-        during.interrupt();
-        telemetry.addData("Yrboa", "HERE");
-        telemetry.update();
+            //robot.mineralGrab.setPosition(STOP);
+            robot.mineralBoxServo.setPosition(robot.mineralBoxServoClose);
+            telemetry.addData("Yrboa", "HERE");
+            telemetry.update();
+            waitSeconds(3);
+            during.interrupt();
 
-        waitSeconds(1);
-    }catch (InterruptedException e){
 
-    }
+            //waitSeconds(4);
+        }catch (InterruptedException e){}
     }
 
 
@@ -701,7 +876,7 @@ public abstract class AutoMain extends RobotFunctions
         try
         {
             liftUntilStuckBIT(1);
-            encoderLift(1, (robot.lift.getCurrentPosition() - 115));
+            encoderLift(1, (robot.lift.getCurrentPosition() - 125));
             robot.lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         }catch (InterruptedException e){
@@ -757,7 +932,12 @@ public abstract class AutoMain extends RobotFunctions
     }
 
     public void betweenMineralGrab(){
-        RunThread(during,ThreadActions.DRIVEBETWEENMINERALGRAB);
+        try {
+            RunThread(during, ThreadActions.DRIVEBETWEENMINERALGRAB);
+            encoderMineralSend(1, 0);
+        }catch (InterruptedException e){
+
+        }
     }
 
     public void grabMineralsAndPutInLander(){
@@ -837,9 +1017,15 @@ public abstract class AutoMain extends RobotFunctions
         try {
             RunThread(during, ThreadActions.LIFTUP);
             turnByGyro(TURN_SPEED, angelForGyro(-getTheGyroAngleToTurnToTheGoldMineral(startGoldMineralPosition)));
+            if(startGoldMineralPosition==GoldPosition.RIGHT){
+                encoderSideWaysDrive(DRIVE_SPEED,10);
+            }
+            //encoderSideWaysDrive(DRIVE_SPEED,10);
+            gyroDrive(DRIVE_SPEED,90,angelForGyro(0));
+            gyroDrive(0.6,20,angelForGyro(0));
             waitUntilThreadIsNotActive(during);
             //waitUntilThreadIsNotActive(during);
-            RunThread(during,ThreadActions.DRIVETOCRATER);
+            //RunThread(during,ThreadActions.DRIVETOCRATER);
             //RunThread(duringTwo,ThreadActions.DRIVETOCRATER);
             //gyroDrive(DRIVE_SPEED, 105, angelForGyro(0));
         }catch (InterruptedException e){
@@ -859,6 +1045,18 @@ public abstract class AutoMain extends RobotFunctions
                 return gyroAngleForGoldMineralMiddle;
             case RIGHT:
                 return gyroAngleForGoldMineralRight;
+        }
+        return 0;
+    }
+
+    public int getTheGyroAngleToTurnToTheGoldMineralWithoutMove(GoldPosition goldPosition){
+        switch (goldPosition){
+            case LEFT:
+                return  craterGyroAngleForGoldMineralLeft;
+            case MIDDLE:
+                return craterGyroAngleForGoldMineralMiddle;
+            case RIGHT:
+                return craterGyroAngleForGoldMineralRight;
         }
         return 0;
     }
@@ -964,135 +1162,143 @@ public abstract class AutoMain extends RobotFunctions
         public void run() {
             if (opModeIsActive()) {
                 //while (!isInterrupted()) {
+                    telemetry.addData("Ahadpasa", "1");
+                    telemetry.update();
 
-                switch (threadOneCurrentAction) {
+                    switch (threadOneCurrentAction) {
 
-                    case VISIONCLIMB:
-                        while (opModeIsActive()) {
-                            telemetry.addData("Yarboaaaaa", "heereee");
-                            telemetry.update();
-                            startGoldMineralPosition = ImageProcessing();
-                            //Thread.sleep(100);
-                        }
-                        break;
-
-                    case LIFTDOWN:
-                        try {
-                            waitSeconds(1.8);
-                            liftDown();
-                            break;
-                        } catch (InterruptedException e) {
-                            robot.lift.setPower(0);
-                        }
-                        break;
-
-                    case LIFTUP:
-                        try {
-                            liftUntilStuckBIT(-1);
-                            break;
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
-                        break;
-
-                    case DRIVEFORWARD:
-                        try {
-                            gyroDrive(0.8, 100, angelForGyro(0));
-                            break;
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
-
-
-                    case GRABMINERAL:
-                        try {
-                            liftUntilStuck(1);
-                            //encoderLift(1, (robot.lift.getCurrentPosition() - 100));
-
-                            robot.blockMineralServo.setPosition(robot.block);   // Set Mode of servo to not block minerals.
-                            robot.mineralGrab.setPosition(FORWARD);
-                            telemetry.addData("Finished1", "here");
-                            telemetry.update();
-                            break;
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                            robot.mineralGrab.setPosition(STOP);
-                        }
-                        break;
-
-                    case PUTMINERALDRIVE:
-                        try
-                        {
-                            waitSeconds(0.2);
-                            gyroDrive(0.6, -18, angelForGyro(0));
+                        case VISIONCLIMB:
+                            while (opModeIsActive()) {
+                                telemetry.addData("Yarboaaaaa", "heereee");
+                                telemetry.update();
+                                startGoldMineralPosition = ImageProcessing();
+                                //Thread.sleep(100);
+                            }
                             break;
 
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
-                        break;
-
-                    case DRIVETOCRATER:
-                        try
-                        {
-                            gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                        case LIFTDOWN:
+                            try {
+                                waitSeconds(1.8);
+                                liftDown();
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
                             break;
 
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
-                        break;
-
-                    case DRIVEBACKWARD:
-                        try
-                        {
-                            gyroDrive(DRIVE_SPEED, -80, angelForGyro(0));
+                        case LIFTUP:
+                            try {
+                                liftUntilStuck(-1);
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
                             break;
 
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
+                        case DRIVEFORWARD:
+                            try {
+                                gyroDrive(0.8, 90, angelForGyro(0));
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
 
-                    case DRIVEBETWEENMINERALGRAB:
-                        try
-                        {
-                            gyroDrive(0.6, 15, angelForGyro(0));
+                        case DRIVEFORWARDMARKER:
+                            try {
+                                gyroDrive(0.8, 80, angelForGyro(0));
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
+
+
+                        case GRABMINERAL:
+                            try {
+                                liftUntilStuck(1);
+                                //encoderLift(1, (robot.lift.getCurrentPosition() - 100));
+
+                                robot.blockMineralServo.setPosition(robot.block);   // Set Mode of servo to not block minerals.
+                                robot.mineralGrab.setPosition(FORWARD);
+                                telemetry.addData("Finished1", "here");
+                                telemetry.update();
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                                robot.mineralGrab.setPosition(STOP);
+                            }
                             break;
 
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
-                        break;
+                        case PUTMINERALDRIVE:
+                            try {
+                                waitSeconds(0.2);
+                                gyroDrive(0.6, -18, angelForGyro(0));
+                                break;
 
-                    case MYDEPOTDRIVEFORWARD:
-                        try
-                        {
-                            gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
                             break;
 
-                        } catch (InterruptedException e) {
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
+                        case DRIVETOCRATER:
+                            try {
+                                gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                                break;
 
-                    case MYDEPOTDRIVEBACKWARD:
-                        try {
-                            gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
                             break;
-                        }catch (InterruptedException e){
-                            robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-                        }
-                        break;
 
-                    case LIFTDOWNGRAB:
-                        try {
-                            liftUntilStuck(1);
+                        case DRIVEBACKWARD:
+                            try {
+                                gyroDrive(DRIVE_SPEED, -80, angelForGyro(0));
+                                break;
+
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
+
+                        case DRIVEBETWEENMINERALGRAB:
+                            try {
+                                gyroDrive(0.6, 15, angelForGyro(0));
+                                break;
+
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
                             break;
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
-                        break;
+
+                        case MYDEPOTDRIVEFORWARD:
+                            try {
+                                gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                                break;
+
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
+
+                        case MYDEPOTDRIVEBACKWARD:
+                            try {
+                                gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
+                            }
+                            break;
+
+                        case LIFTDOWNGRAB:
+                            try {
+                                liftUntilStuck(1);
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
+                            break;
+                    }
+                    telemetry.addData("Ahadpasa","2");
+                    telemetry.update();
                 }
-            }
+            //}
         }
     }
 
@@ -1111,84 +1317,94 @@ public abstract class AutoMain extends RobotFunctions
         @Override
         public void run()
         {
-            if (opModeIsActive()) {
-                switch (threadTwoCurrentAction) {
-                    case LIFTSTART:
-                        try
-                        {
-                            encoderLift(1, 40);
-                            liftUntilStuckBIT(-1);
+            //while (!isInterrupted()) {
+                if (opModeIsActive()) {
+                    switch (threadTwoCurrentAction) {
+                        case LIFTSTART:
+                            try {
+                                encoderLift(1, 40);
+                                liftUntilStuckBIT(-1);
+                                break;
+
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
                             break;
 
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
-                        break;
+                        case LIFTUP:
 
-                    case LIFTUP:
-
-                        try {
-                            liftUntilStuckBIT(-1);
-                            break;
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
-                        break;
-
-                    case EXTRUSIONS:
-                        try
-                        {
-                            encoderMineralSend(1, 0);
+                            try {
+                                liftUntilStuckBIT(-1);
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                                telemetry.addData("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy","1");
+                                telemetry.update();
+                            }
                             break;
 
-                        }catch (InterruptedException e){
-                            robot.mineralSend.setPower(0);
-                        }
-                        break;
+                        case EXTRUSIONS:
+                            try {
+                                encoderMineralSend(1, 130);
+                                break;
 
-                    case LIFTDOWN:
-                        try
-                        {
-                            robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                            liftDown();
+                            } catch (InterruptedException e) {
+                                robot.mineralSend.setPower(0);
+                            }
                             break;
 
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
+                        case LIFTDOWN:
+                            try {
+                                robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                                liftDown();
+                                break;
 
-                    case PUSH:
-                        try
-                        {
-                            //waitSeconds(0.2);
-                            //robot.push.setPower(1);
-                            //waitSeconds(0.4);
-                            robot.push.setPower(-1);
-                            waitSeconds(0.2);
-                            robot.push.setPower(0.6);
-                            waitSeconds(0.1);
-                            robot.push.setPower(0);
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
 
-                            //robot.mineralGrab.setPosition(FORWARD);
-                            //waitSeconds(0.5)
+                        case PUSH:
+                            try {
+                                //waitSeconds(0.2);
+                                //robot.push.setPower(1);
+                                //waitSeconds(0.4);
+
+                                robot.push.setPower(-1);
+                                waitSeconds(0.2);
+                                robot.push.setPower(0.6);
+                                waitSeconds(0.1);
+                                robot.push.setPower(0);
+                                //encoderPush(1, 300);
+
+                                //pushCloseEncoder(0.8);
+
+                                //encoderPush(1, pushOpen);
+
+                                //robot.push.setPower(0.6);
+                                //waitSeconds(0.1);
+                                //robot.push.setPower(0);
+
+                                //robot.mineralGrab.setPosition(FORWARD);
+                                //waitSeconds(0.5)
+                                break;
+
+                            } catch (InterruptedException e) {
+                                robot.push.setPower(0);
+                            }
                             break;
 
-                        }catch (InterruptedException e){
-                            robot.push.setPower(0);
-                        }
-                        break;
-
-                    case LIFTDOWNGRAB:
-                        try {
-                            liftUntilStuck(1);
+                        case LIFTDOWNGRAB:
+                            try {
+                                liftUntilStuck(1);
+                                break;
+                            } catch (InterruptedException e) {
+                                robot.lift.setPower(0);
+                            }
                             break;
-                        }catch (InterruptedException e){
-                            robot.lift.setPower(0);
-                        }
-                        break;
+                    }
                 }
-            }
 
+            //}
         }
     }
 
@@ -1197,6 +1413,48 @@ public abstract class AutoMain extends RobotFunctions
         while (currentThread.isAlive())
         {
             sleep(50);
+        }
+    }
+
+
+
+
+    private class myStop extends Thread
+    {
+        public myStop()
+        {
+            this.setName("myStop");
+
+        }
+
+        // called when tread.start is called. thread stays in loop to do what it does until exit is
+        // signaled by main code calling thread.interrupt.
+        @Override
+        public void run()
+        {
+            //ElapsedTime stopTime = new ElapsedTime();
+            int i=0;
+
+           /* while (i<290 && opModeIsActive()) {
+                telemetry.addData("IM","ALIVE");
+                telemetry.update();
+                try {
+                    Thread.sleep(100);
+                    i++;
+
+                }catch (InterruptedException e){
+
+                }
+            }
+            */
+           while (opModeIsActive()){}
+            telemetry.addData("IM","KILL");
+            telemetry.update();
+            killThreads();
+            myStop.interrupt();
+
+
+            //}
         }
     }
 
@@ -1236,174 +1494,6 @@ public abstract class AutoMain extends RobotFunctions
 
 
 
-
-
-
-
-
-
-    //The main function of the autonomous
-    void apolloRun(boolean isCrater)
-    {
-
-
-        try {
-            encoderLift(1,180);
-            waitSeconds(1);
-            encoderLift(1,0);
-            waitSeconds(999);
-
-            try {
-                encoderPush(1,300);
-            }catch (InterruptedException e){
-                robot.push.setPower(0);
-                telemetry.addData("e:",e);
-
-                telemetry.update();
-            }
-
-            //encoderMineralSend(1, 700);
-            waitSeconds(999);
-            //encoderClimbVision(1, robot.climbOpenPosition);     // Get down from lender, and at the same time open systems and process image.
-
-            //turnAwayFromLender();     // Turn towards the minerals.
-            encoderSideWaysDrive(1, -15);
-
-            gyroDrive(DRIVE_SPEED, 50,angelForGyro(0));
-
-            // According to the image processing we did.
-            switch (startGoldMineralPosition) {
-                case LEFT:      // If gold mineral is on the left.
-                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -90);
-                    break;
-                case RIGHT:     // If gold mineral is on the right.
-                    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, 90);
-                    break;
-                case MIDDLE:    // If gold mineral is on the middle, Close both servos.
-
-                    break;
-            }
-
-            waitSeconds(999);
-
-        }catch (InterruptedException e) { }
-
-
-        /** If Crater **/
-        if(isCrater)
-        {
-            try {
-                if(startGoldMineralPosition==GoldPosition.MIDDLE)
-                {   // If gold mineral is in te middle.
-                    encoderLift(1, 675);
-                    robot.mineralGrab.setPosition(FORWARD);
-                    gyroDrive(DRIVE_SPEED,95,angelForGyro(0));
-                    robot.mineralGrab.setPosition(STOP);
-                    encoderLift(1, 550);
-                    gyroDrive(DRIVE_SPEED,5,angelForGyro(0));
-                    encoderLift(1, 670);
-
-                }
-                gyroDrive(DRIVE_SPEED,115,angelForGyro(0));
-
-                robot.mineralGrab.setPosition(FORWARD);        // Try to grab minerals.
-                encoderLift(1, 685);
-                encoderPush(1,3500);
-
-                while (opModeIsActive()){            }  // Keep trying to grab minerals until times up.
-            }catch (InterruptedException e) { }
-
-        }
-
-        /** If Depot **/
-        else if (!isCrater)
-        {
-            try{
-                if(startGoldMineralPosition==GoldPosition.MIDDLE)
-                {   // If gold mineral is in te middle.
-                    encoderLift(1, 670);
-                    gyroDrive(DRIVE_SPEED, 175, angelForGyro(0));
-
-                    //encoderLift(1, 675);
-
-                    robot.mineralGrab.setPosition(BACKWARDS);
-                    //waitSeconds(0.5);
-
-                    encoderLift(1, 580);
-                    //gyroDrive(DRIVE_SPEED, -40, angelForGyro(0));
-                    //robot.setMineralGrabServos(0.8);
-                    //gyroDrive(DRIVE_SPEED, -90, angelForGyro(0));
-                    gyroDrive(DRIVE_SPEED, -132, angelForGyro(0));
-                    robot.mineralGrab.setPosition(STOP);
-                    //encoderLift(1, 665);
-                    //gyroDrive(DRIVE_SPEED, 32, angelForGyro(0));
-                    //encoderLift(1, 550);
-
-                }else
-                {
-                    gyroDrive(DRIVE_SPEED, 140, angelForGyro(0));
-                    encoderLift(1, 505);
-                    robot.mineralGrab.setPosition(BACKWARDS);
-                    waitSeconds(0.5);
-                    robot.mineralGrab.setPosition(STOP);
-
-                    gyroDrive(DRIVE_SPEED, -115, angelForGyro(0));
-                }
-
-                turnByGyro(0.6, angelForGyro(-95 * TURNRIGHTORLEFT));
-                gyroDrive(DRIVE_SPEED, 250, angelForGyro(-3  * TURNRIGHTORLEFT));
-                encoderLift(1, 675);
-
-
-                robot.mineralGrab.setPosition(FORWARD);    // Try to grab minerals.
-                while (opModeIsActive()){            }  // Keep trying to grab minerals until times up.
-            }catch (InterruptedException e) { }
-
-        }
-
-    }
-
-    // This function  sets all the positions for the robot to be ready for running.
-    public void startRobotInit(){
-        try{
-            encoderPush(1,1400);
-            encoderLift(1,260);
-        }catch (InterruptedException e) { }
-
-    }
-
-
-
-    public void robotGrabMineral(){
-        try {
-            robot.mineralBoxServo.setPosition(1);
-            encoderPush(1, 2000);
-            encoderLift(1, 680);
-
-            robot.mineralGrab.setPosition(FORWARD);
-
-            encoderPush(1, 4000);
-            encoderPush(1, 2000);
-            robot.mineralGrab.setPosition(STOP);
-            encoderLift(1, 650);
-            encoderPush(1, 100);
-
-            robot.mineralBoxServo.setPosition(1);
-            //waitSeconds(1);
-            robot.blockMineralServo.setPosition(robot.dontBlock);
-            encoderLift(1, 190);
-
-            waitSeconds(2.5);
-            robot.mineralBoxServo.setPosition(1);
-            encoderMineralSend(1, 7800);
-            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
-            robot.mineralBoxServo.setPosition(0.4);
-            waitSeconds(2);
-            encoderMineralSend(1, 20);
-        }catch (InterruptedException e) { }
-    }
-
-
     // Function turns on the camera and enables processing.
     public void InitMyVision(){
         vision = new MineralVision();
@@ -1413,6 +1503,10 @@ public abstract class AutoMain extends RobotFunctions
         // start the vision system.
         vision.enable();
     }
+
+
+
+
 
 }
 

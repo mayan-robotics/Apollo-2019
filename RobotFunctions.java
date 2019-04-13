@@ -58,10 +58,13 @@ public abstract class RobotFunctions extends LinearOpMode
     final static double STOP = 0 ;
 
     static final double encoderTicksRange = 2;
-    static final double encoderRespondingTimeSeconds = 0.25;
+    static final double encoderRespondingTimeSeconds = 0.35;
 
     static final int climbEncoderOpen = 4300;
 
+
+    static final int pushOpen = 1500;
+    static final int pushClose = 0;
 
 
 
@@ -543,6 +546,44 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
+
+    // Push motor by encoder function.
+    public void pushCloseEncoder(double speed) throws InterruptedException {
+        try {
+
+            robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            // Ensure that the opmode is still active
+            if (opModeIsActive()) {
+                robot.push.setTargetPosition(pushClose);
+                // Turn On RUN_TO_POSITION
+                robot.push.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                // reset the timeout time and start motion.
+                runtime.reset();
+                robot.push.setPower(abs(speed));
+                // keep looping while we are still active, and there is time left, and both motors are running.
+                // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
+                // its target position, the motion will stop.  This is "safer" in the event that the robot will
+                // always end the motion as soon as possible.
+                // However, if you require that BOTH motors have finished their moves before the robot continues
+                // onto the next step, use (isBusy() || isBusy()) in the loop test.
+                while (opModeIsActive() &&
+                        (robot.push.isBusy()&& robot.touchPusher.getState() )){
+
+                    Thread.sleep(threadSleepTimeMS);
+                }
+
+                // Stop all motion;
+                robot.push.setPower(0);
+
+                // Turn off RUN_TO_POSITION
+                robot.push.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+        }catch (InterruptedException e) {
+            throw new InterruptedException("push");
+        }
+    }
+
     // Lift motor by encoder function.
     public void encoderLift(double speed, int ticks) throws InterruptedException {
         try{
@@ -606,7 +647,7 @@ public abstract class RobotFunctions extends LinearOpMode
             double liftCurrentPosition = 0;
             robot.lift.setPower(speed);
             boolean Exit = false;
-            while (!Exit) {
+            while ((!Exit) && (opModeIsActive())) {
                 if (timeRespons.seconds() > encoderRespondingTimeSeconds) {
                     telemetry.addData("liftCurrentPosition time",liftCurrentPosition);
                     liftCurrentPosition = robot.lift.getCurrentPosition();
@@ -662,7 +703,7 @@ public abstract class RobotFunctions extends LinearOpMode
         if (opModeIsActive()) {
             double mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
             robot.mineralSend.setPower(abs(speed));
-            while (mineralSendCurrentPosition<ticks){
+            while ((mineralSendCurrentPosition<ticks) && (opModeIsActive())){
                 mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
             }
             robot.mineralSend.setPower(0);
@@ -856,12 +897,15 @@ public abstract class RobotFunctions extends LinearOpMode
     public void pushClose(double speed) throws InterruptedException{
         try{
             robot.push.setPower(speed);
-            while (robot.touchPusher.getState()) {
+            robot.mineralBoxServo.setPosition(0.4);
+            //Thread.sleep(400);
+            while ((robot.touchPusher.getState()) && (opModeIsActive())) {
                  Thread.sleep(2);
             }
             telemetry.addData("CLICK","jhghgg");
             telemetry.update();
             robot.push.setPower(0);
+            robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
         }catch (InterruptedException e) {
             throw new InterruptedException();
         }

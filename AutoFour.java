@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import java.io.WriteAbortedException;
+
 
 @Autonomous(name="Apollo: Auto 4 ", group="Apollo Autonomous")
 public class AutoFour extends AutoMain {
@@ -12,25 +14,37 @@ public class AutoFour extends AutoMain {
 
         waitForStart();
 
-        setGameParameters(GamePositions.DEPOT ,GamePositions.OTHERCRATER, GamePositions.PARKFORWADRS);
+        setGameParameters(GamePositions.CRATER,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
 
         climbDown();
-        //startGoldMineralPosition=GoldPosition.MIDDLE;
+        //startGoldMineralPosition=GoldPosition.LEFT;
         //turnToGoldMineral();
         //waitSeconds(2);
-        mainMoveGoldMineral();
-        telemetry.addData("heweqerc","werfervver");
+        //mainMoveGoldMineral();
+
+        telemetry.addData("HEHEHHIO","IHDIU");
         telemetry.update();
-
-
         //waitSeconds(2);
-        mainPutMarker();
 
-        telemetry.addData("finished","done");
-        telemetry.update();
+        moveGoldMineralCraterWithout();
+        getReadyToGrabMinerals();
+
+
+        //grabMineralsAndPutInLander();
+        grab();
+        putMineralsInLander();
+        betweenMineralGrab();
+        liftDown();
+        //grabWitoutLift();
+        //grab();
+        //putMineralsInLander();
+        //grabMineralsAndPutInLander();
+        //betweenMineralGrab();
+        //liftDown();
+
 
         //waitSeconds(1);
-        backToCraterFromDepot();
+        //backToCraterFromDepot();
         //waitSeconds(2);
 
     }

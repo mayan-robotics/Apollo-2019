@@ -76,7 +76,7 @@ public class HardwareApollo {
     static final double mineralBoxServoOpen = 0.60 ; //A
     static final double mineralBoxServoClose = 0.2; //Y
 
-    static final String Version = "1.4.10" ;
+    static final String Version = "1.4.13" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -133,10 +133,10 @@ public class HardwareApollo {
         // Set all motors directions.
         driveRightBack.setDirection(DcMotor.Direction.REVERSE);     // Reversed motor
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    // Reversed motor
-        //push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
+        push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         mineralGrab.setDirection(Servo.Direction.REVERSE);     // Reversed motor
-        mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
+        //mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
         climbMotor.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
 
         climbMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

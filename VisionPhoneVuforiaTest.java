@@ -251,16 +251,12 @@ public class VisionPhoneVuforiaTest extends LinearOpMode {
                         telemetry.addData("# Object Detected", updatedRecognitions.size());
                         if (updatedRecognitions.size() >= 1) {
                             int goldMineralX;
-                            int goldMineralY;
                             for (Recognition recognition : updatedRecognitions) {
                                 if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
                                     goldMineralX = (int) recognition.getBottom();
-                                    goldMineralY = (int) recognition.getBottom();
                                     telemetry.addData("GoldX", goldMineralX);
-                                    //telemetry.addData("GoldY", goldMineralY);
                                     telemetry.addData("# Object Detected2", updatedRecognitions.size());
                                     telemetry.update();
-                                    //if(goldMineralY<robot.MineralLimitY) {
                                     if (goldMineralX < robot.MineralMiddleLimitLeft) {
                                         telemetry.addData("Detected", "left");
                                         return GoldPosition.LEFT;
@@ -270,9 +266,7 @@ public class VisionPhoneVuforiaTest extends LinearOpMode {
                                     } else if (goldMineralX > robot.MineralMiddleLimitLeft && goldMineralX < robot.MineralMiddleLimitRight) {
                                         return GoldPosition.MIDDLE;
                                     } else {
-                                        //return GoldPosition.OUTOFRANGE;
                                     }
-                                    //}
                                 } else {
                                     return GoldPosition.OUTOFRANGE;
                                 }

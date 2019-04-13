@@ -3,35 +3,31 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 
-@Autonomous(name="Apollo: Auto 1", group="Apollo Autonomous")
+@Autonomous(name="Apollo: Auto 1 ", group="Apollo Autonomous")
 public class AutoOne extends AutoMain {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        apolloInit();
+            apolloInit();
 
-        waitForStart();
+            setGameParameters(GamePositions.DEPOT, GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
 
-        setGameParameters(GamePositions.CRATER,GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
+            climbDown();
 
+            mainMoveGoldMineral();
 
-        climbDown();
-
-        //startGoldMineralPosition=GoldPosition.MIDDLE;
-        //turnToGoldMineral();
-        //waitSeconds(2);
-        mainMoveGoldMineral();
+            mainPutMarker();
 
 
+            //waitSeconds(1);
+            backToCraterFromDepot();
 
-        //waitSeconds(2);
-        mainPutMarker();
+            telemetry.addData("finished", "done");
+            telemetry.update();
+            //waitSeconds(2);
 
-
-        waitSeconds(1);
-        backToCraterFromDepot();
-        //waitSeconds(2);
+            during.interrupt();
+            duringTwo.interrupt();
 
     }
-
 }

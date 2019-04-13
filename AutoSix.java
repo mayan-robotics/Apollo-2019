@@ -11,30 +11,8 @@ public class AutoSix extends AutoMain {
         apolloInit();
 
         waitForStart();
-    while (opModeIsActive()) {
-        setGameParameters(GamePositions.DEPOT, GamePositions.OURCRATER, GamePositions.PARKBACKWARDS);
 
         climbDown();
-        //startGoldMineralPosition=GoldPosition.LEFT;
-        //turnToGoldMineral();
-        //waitSeconds(2);
-        mainMoveGoldMineral();
-        telemetry.addData("heweqerc", "werfervver");
-        telemetry.update();
-
-
-        //waitSeconds(2);
-        mainPutMarker();
-
-        telemetry.addData("finished", "done");
-        telemetry.update();
-
-        //waitSeconds(1);
-        backToCraterFromDepot();
-        //waitSeconds(2);
-    }
-    during.interrupt();
-    duringTwo.interrupt();
 
     }
 }
