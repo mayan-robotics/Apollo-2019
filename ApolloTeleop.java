@@ -180,7 +180,7 @@ public class ApolloTeleop extends RobotFunctions {
         {   // Right trigger pushed, open extrusions.
             robot.mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.mineralSend.setPower(-gamepad1.right_trigger);
-            if(robot.mineralSend.getCurrentPosition()<450 && !gamepad1.y){
+            if(robot.mineralSend.getCurrentPosition()<-450 && !gamepad1.y){
                 robot.mineralBoxServo.setPosition(1);
             }
         } else if (gamepad1.left_trigger > 0.1)
@@ -192,6 +192,17 @@ public class ApolloTeleop extends RobotFunctions {
         } else {
             robot.mineralSend.setPower(0);
             robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+        }
+    }
+    
+    public void GeneralRobotActions(){
+        // When the Extrusions are dow set their position.
+        if((-180<robot.mineralSend.getCurrentPosition()) && (robot.mineralSend.getCurrentPosition()< 180)){
+            robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
+
+        // Get the button state.
+        if(!robot.touchPusher.getState()){
+            buttonClicked=true;
         }
     }
 
@@ -369,17 +380,6 @@ public class ApolloTeleop extends RobotFunctions {
         }
     }
 
-    public void GeneralRobotActions(){
-        // When the Extrusions are dow set their position.
-        if((-180>robot.mineralSend.getCurrentPosition()) && (robot.mineralSend.getCurrentPosition()> 180)){
-            robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
-        }
-
-        // Get the button state.
-        if(!robot.touchPusher.getState()){
-            buttonClicked=true;
-        }
-    }
 
 
     public void TelemetryRobotStatus(){

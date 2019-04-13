@@ -16,9 +16,6 @@ public class AutoTwo extends AutoMain {
 
         climbDown();
         mainMoveGoldMineral();
-        telemetry.addData("heweqerc", "werfervver");
-        telemetry.update();
-
 
         //waitSeconds(2);
         mainPutMarker();
