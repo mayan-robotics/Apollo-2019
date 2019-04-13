@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-
 @Autonomous(name="Apollo: Auto 5 ", group="Apollo Autonomous")
 public class AutoFive extends AutoMain {
 
@@ -17,6 +16,7 @@ public class AutoFive extends AutoMain {
         moveGoldMineralCraterWithout();
         blockBetween();
         parkForBlockingRobot();
-    }
 
+        endAuto();
+    }
 }

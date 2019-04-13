@@ -7,11 +7,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 
-import static java.lang.Math.abs;
-
 
 /**
- * Apollo 2019
+ * Apollo 2019 - Programed by Mayan Salomon.
  * This class is used to define all the specific hardware for Apollo's robot.
  */
 
@@ -76,7 +74,7 @@ public class HardwareApollo {
     static final double mineralBoxServoOpen = 0.60 ; //A
     static final double mineralBoxServoClose = 0.2; //Y
 
-    static final String Version = "1.4.13" ;
+    static final String Version = "Final.1" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;
@@ -135,9 +133,8 @@ public class HardwareApollo {
         driveRightFront.setDirection(DcMotor.Direction.REVERSE);    // Reversed motor
         push.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
         lift.setDirection(DcMotor.Direction.REVERSE);               // Reversed motor
-        mineralGrab.setDirection(Servo.Direction.REVERSE);     // Reversed motor
-        //mineralSend.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
-        climbMotor.setDirection(DcMotor.Direction.REVERSE);        // Reversed motor
+        mineralGrab.setDirection(Servo.Direction.REVERSE);          // Reversed motor
+        climbMotor.setDirection(DcMotor.Direction.REVERSE);         // Reversed motor
 
         climbMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -159,7 +156,7 @@ public class HardwareApollo {
     }
 
     // Function set positions for the servos.
-    public void InitServoes(){
+    public void InitServos(){
         // Set all servos positions
         blockMineralServo.setPosition(block);
         mineralBoxServo.setPosition(mineralBoxServoOpen);

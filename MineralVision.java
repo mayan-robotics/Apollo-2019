@@ -49,7 +49,6 @@ import java.util.List;
 public class MineralVision extends OpenCVPipeline {
     private boolean showContours = true;
     GripGoldMineral     gripGold   = new GripGoldMineral();
-    GripSilverMineral   gripSilver   = new GripSilverMineral();
     // To keep it such that we don't have to instantiate a new Mat every call to processFrame,
     // we declare the Mats up here and reuse them. This is easier on the garbage collector.
 
@@ -78,7 +77,6 @@ public class MineralVision extends OpenCVPipeline {
                 newContours.addAll(contoursGold);
             }
         }
-        //return contoursGold;
     }
 
     public synchronized List<MatOfPoint> getSilverContours() {
@@ -102,9 +100,7 @@ public class MineralVision extends OpenCVPipeline {
 
         gripGold.process(imageRGB);
         contoursOutputIsReady = false;
-        //contoursGold = new ArrayList<>();
         contoursGold.clear();
-        //contoursGold = gripGold.filterContoursOutput();
         gripGold.filterContoursOutput(contoursGold);
         contoursOutputIsReady = true;
 
@@ -114,7 +110,6 @@ public class MineralVision extends OpenCVPipeline {
         } else {
             findGoldMineral = false;
         }
-
 
         return imageRGB; // display the image seen by the camera
     }

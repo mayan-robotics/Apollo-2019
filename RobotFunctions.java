@@ -30,8 +30,9 @@ public abstract class RobotFunctions extends LinearOpMode
     private ElapsedTime timeRespons = new ElapsedTime();
     private ElapsedTime timeResponsExtrusions = new ElapsedTime();
 
-    private MineralVision vision;       // Use our vision class.
-    private List<MatOfPoint> contoursGold = new ArrayList<>();
+    static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
+    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
+    static final double P_DRIVE_COEFF = 0.08;     // Larger is more responsive, but also less stable
 
     // These constants define the desired driving/control characteristics
     // The can/should be tweaked to suite the specific robot drive train.
@@ -39,18 +40,8 @@ public abstract class RobotFunctions extends LinearOpMode
     static final double TURN_SPEED = 0.6;     // Nominal half speed for better accuracy.
     static final double SIDE_WAYS_DRIVE_SPEED = 1;     // Nominal speed for better accuracy.
 
-
-    static final double HEADING_THRESHOLD = 1;      // As tight as we can make it with an integer gyro
-    static final double P_TURN_COEFF = 0.1;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = 0.08;     // Larger is more responsive, but also less stable
-
     static final long threadSleepTimeMS = 500;
 
-    int TURNRIGHTORLEFT = 1;    /* This number controls the directions of the robot,
-                                   if its 1 -> the robot will turn right, to our crater,
-                                   if its -1 -> the robot will turn left to the other crater. */
-
-    boolean didInit = false;    // Boolean we use to know if we finished our init.
     int gyroDegrees = 0;    // Counter of gyro angle
 
     final static double FORWARD = 0.8 ;
@@ -62,17 +53,9 @@ public abstract class RobotFunctions extends LinearOpMode
 
     static final int climbEncoderOpen = 4300;
 
-
     static final int pushOpen = 1500;
     static final int pushClose = 0;
 
-
-
-    // This function turns away from lender
-    //public void turnAwayFromLender() throws InterruptedException{
-    //    encoderSideWaysDrive(SIDE_WAYS_DRIVE_SPEED, -40);
-    //    turnByGyro(TURN_SPEED, angelForGyro(90));
-    //}
 
     // Function will be used to keep track of the gyro positions.
     public int angelForGyro(double degreesWanted) throws InterruptedException{
@@ -176,108 +159,6 @@ public abstract class RobotFunctions extends LinearOpMode
     }
 
 
-    public void steerDrive(double Speed, double Distance, int Angle, int steer) throws InterruptedException{
-        try {
-        double distancePerTime = Distance/steer;
-        int anglePerTime = Angle/steer;
-
-        for (int times=0; times<steer; times++){
-            gyroDrive(Speed,distancePerTime,angelForGyro((anglePerTime*times)));
-        }
-        robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-        }catch (InterruptedException e){
-            throw new InterruptedException();
-        }
-
-    }
-
-    public void gyroDriveSteer ( double speed,
-                                 double Distance,
-                                 double angle, int timesSteer) throws InterruptedException{
-        try{
-            int moveCounts;
-            double max;
-            double error;
-            double steer;
-            double leftSpeed;
-            double rightSpeed;
-            double anglePerTime = angle/timesSteer;
-            double distancePerTime = Distance/timesSteer;
-            double times=1;
-
-            // Ensure that the opmode is still active
-            if (opModeIsActive()) {
-
-                // Determine new target position, and pass to motor controller
-                moveCounts = (int) (Distance);
-                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-                robot.setDriveMotorsPosition(moveCounts, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-
-
-                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                // start motion.
-                speed = Range.clip(abs(speed), 0.0, 1.0);
-
-                robot.setDriveMotorsPower(speed, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-
-                // keep looping while we are still active, and BOTH motors are running.
-                while (opModeIsActive() &&
-                        (robot.driveLeftFront.isBusy()
-                                && robot.driveLeftBack.isBusy()
-                                && robot.driveRightFront.isBusy()
-                                && robot.driveRightBack.isBusy())) {
-
-                    if(robot.driveLeftFront.getCurrentPosition()>(distancePerTime)*times){
-                        times=times+1;
-                    }
-                    telemetry.addData("steer",anglePerTime*times);
-                    telemetry.addData("times",times);
-                    telemetry.update();
-                    // adjust relative speed based on heading error.
-                    error = getError(anglePerTime*times);
-                    steer = getSteer(error, P_DRIVE_COEFF);
-
-                    // if driving in reverse, the motor correction also needs to be reversed
-                    if (Distance < 0)
-                        steer *= -1.0;
-
-                    leftSpeed = speed - steer;
-                    rightSpeed = speed + steer;
-
-                    // Normalize speeds if either one exceeds +/- 1.0;
-                    max = Math.max(abs(leftSpeed), abs(rightSpeed));
-                    if (max > 1.0) {
-                        leftSpeed /= max;
-                        rightSpeed /= max;
-                    }
-                    telemetry.addData("left speed",leftSpeed);
-                    telemetry.addData("right speed",rightSpeed);
-                    telemetry.update();
-
-                    robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-                    robot.setDriveMotorsPower(rightSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-                }
-
-                // Stop all motion;
-                robot.setDriveMotorsPower(0, HardwareApollo.DRIVE_MOTOR_TYPES.ALL);
-
-                // Turn off RUN_TO_POSITION
-                robot.setDriveMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-        }catch (InterruptedException e) {
-            throw new InterruptedException();
-        }
-    }
-
-    public void toPosition(double speed, DcMotor motor,double ticks){
-        double getCurrentPosition= motor.getCurrentPosition();
-        motor.setPower(speed);
-        while (opModeIsActive() && getCurrentPosition<ticks ){
-
-        }
-    }
-
     /**
      *  Method to spin on central axis to point in a new direction.
      *  Move will stop if either of these conditions occur:
@@ -303,19 +184,6 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
-    public void FancyTurn (  double speed, double angle) throws InterruptedException {
-        try{
-            // keep looping while we are still active, and not on heading.
-            angle+=GetGyroAngle();
-            while (opModeIsActive() && !TheFancyFance(speed, angle, P_TURN_COEFF)) {
-                // Update telemetry & Allow time for other processes to run.
-                telemetry.update();
-
-            }
-        }catch (InterruptedException e) {
-            throw new InterruptedException();
-        }
-    }
 
     /**
      *  Method to obtain & hold a heading for a finite amount of time
@@ -441,13 +309,7 @@ public abstract class RobotFunctions extends LinearOpMode
         }
     }
 
-    /*
-    public void driveByGyro(double speed, double Distance, double angle) throws InterruptedException
-    {
-        gyroDrive(speed, Distance, angle,true);
-        turnByGyro(TURN_SPEED,angle);
-    }
-    */
+
 
     /** Activate Motors By Encoder Functions **/
 
@@ -707,10 +569,7 @@ public abstract class RobotFunctions extends LinearOpMode
                 mineralSendCurrentPosition = robot.mineralSend.getCurrentPosition();
             }
             robot.mineralSend.setPower(0);
-
         }
-
-
     }
 
     // Send motor by encoder function.
@@ -755,10 +614,8 @@ public abstract class RobotFunctions extends LinearOpMode
 
                     Thread.sleep(threadSleepTimeMS);
                 }
-//
                 // Stop all motion;
                 robot.mineralSend.setPower(0);
-//
                 // Turn off RUN_TO_POSITION
                 robot.mineralSend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -838,49 +695,6 @@ public abstract class RobotFunctions extends LinearOpMode
     }
 
 
-    // Function gets the climbing motor to the wanted position.
-    // Opens systems, and activates vision to check where the gold mineral, in the same time.
-    public void encoderClimbVision(double speed, int ticks) throws InterruptedException  {
-        try{
-            robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            // Ensure that the opmode is still active
-            if (opModeIsActive()) {
-                robot.climbMotor.setTargetPosition(ticks);  // Set the wanted target.
-                // Turn On RUN_TO_POSITION
-                robot.climbMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                robot.climbMotor.setPower(abs(speed));     // Set speed
-                // keep looping while we are still active, and there is time left, and both motors are running.
-                while (opModeIsActive() &&
-                        (robot.climbMotor.isBusy())){
-                    Thread.sleep(threadSleepTimeMS);
-
-                    // Activate Vision and check where is the gold mineral. Save the position.
-                    //StartGoldMineralPosition = visionProcessing();
-                }
-
-                // Stop all motion;
-                robot.climbMotor.setPower(0);
-
-                // Turn off RUN_TO_POSITION
-                robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            }
-        }catch (InterruptedException e) {
-            throw new InterruptedException("climbMotor");
-        }
-    }
-
-    /*
-    // Function turns on the camera and enables processing.
-    public void InitMyVision(){
-        vision = new MineralVision();
-        // Start to display image of camera.
-        vision.init(hardwareMap.appContext, CameraViewDisplay.getInstance(), 0);
-        vision.setShowCountours(false);
-        // start the vision system.
-        vision.enable();
-    }
-    */
 
     // Gyro angle
     public float GetGyroAngle() throws InterruptedException{
@@ -902,7 +716,6 @@ public abstract class RobotFunctions extends LinearOpMode
             while ((robot.touchPusher.getState()) && (opModeIsActive())) {
                  Thread.sleep(2);
             }
-            telemetry.addData("CLICK","jhghgg");
             telemetry.update();
             robot.push.setPower(0);
             robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
@@ -910,53 +723,7 @@ public abstract class RobotFunctions extends LinearOpMode
             throw new InterruptedException();
         }
     }
-    public boolean JoysStickInDeadZone() throws InterruptedException{
-        try{
-            if(abs(gamepad1.left_stick_y)<0.3 && abs(gamepad1.left_stick_x)<0.3 ){
-                Thread.sleep(threadSleepTimeMS);
-                return true;
-            }
-            else{
-                return false;
-            }
-        }catch (InterruptedException e) {
-            throw new InterruptedException();
-        }
-    }
 
-    public boolean TheFancyFance( double speed, double angle, double PCoeff) throws InterruptedException{
-        try {
-            {
-            }
-            double error;
-            double steer;
-            boolean onTarget = false;
-            double leftSpeed;
-            double rightSpeed;
-
-            // determine turn power based on +/- error
-            error = getError(angle);
-
-            if (abs(error) <= HEADING_THRESHOLD) {
-                steer = 0.0;
-                leftSpeed = 0.0;
-                rightSpeed = 0.0;
-                onTarget = true;
-            } else {
-                steer = getSteer(error, PCoeff);
-                rightSpeed = speed * steer;
-                leftSpeed = -rightSpeed;
-            }
-            // Send desired speeds to motors.
-            robot.setDriveMotorsPower(leftSpeed, HardwareApollo.DRIVE_MOTOR_TYPES.LEFT);
-            robot.setDriveMotorsPower(rightSpeed-0.3, HardwareApollo.DRIVE_MOTOR_TYPES.RIGHT);
-            return onTarget;
-
-        }catch (InterruptedException e) {
-            throw new InterruptedException();
-        }
-
-    }
 
     public void mineralUp() throws InterruptedException{
         try {

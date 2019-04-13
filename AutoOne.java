@@ -8,26 +8,16 @@ public class AutoOne extends AutoMain {
 
     @Override
     public void runOpMode() throws InterruptedException {
-            apolloInit();
+        apolloInit();
 
-            setGameParameters(GamePositions.DEPOT, GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
+        waitForStart();
 
-            climbDown();
+        setGameParameters(GamePositions.DEPOT, GamePositions.OURCRATER, GamePositions.PARKFORWADRS);
+        climbDown();
+        mainMoveGoldMineral();
+        mainPutMarker();
+        backToCraterFromDepot();
 
-            mainMoveGoldMineral();
-
-            mainPutMarker();
-
-
-            //waitSeconds(1);
-            backToCraterFromDepot();
-
-            telemetry.addData("finished", "done");
-            telemetry.update();
-            //waitSeconds(2);
-
-            during.interrupt();
-            duringTwo.interrupt();
-
+        endAuto();
     }
 }

@@ -1,12 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.widget.Button;
-
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -28,12 +24,8 @@ public class ApolloTeleop extends RobotFunctions {
 
     volatile boolean climbMotorInUse = false;
     volatile boolean climbThreadActive = false;
-
     volatile boolean moveMineralsThreadActive = false;
     volatile boolean moveMineralsInUse = false;
-
-    volatile boolean liftDownThreadActive = false;
-    volatile boolean liftDownInUse = false;
     volatile boolean buttonClicked = true;
     volatile boolean threadOn = true;
 
@@ -59,18 +51,10 @@ public class ApolloTeleop extends RobotFunctions {
         /** Wait For Start **/
         waitForStart();
 
-        robot.InitServoes();        // Set all servos positions
+        robot.InitServos();        // Set all servos positions
 
         while (opModeIsActive())
         {
-            if(gamepad2.x){
-                if(threadOn == true){
-                    threadOn= false;
-                }else{
-                    threadOn= true;
-                }
-            }
-
             DrivingFeatures();
             MainDriving();
 
@@ -82,35 +66,23 @@ public class ApolloTeleop extends RobotFunctions {
             LiftControl();
             GeneralRobotActions();
 
-
-            //ResetEncodersButton();
-
             ClimbThreadActivate(climb);
             ClimbSystemControl(climb);
             MoveMineralsMagicButtonControl(moveMinerals);
-
-            //mineralPassThread(moveMinerals);
-
-
             TelemetryRobotStatus();
         }
 
         moveMinerals.interrupt();
         climb.interrupt();
-
-
     }
 
 
 
-
-
-
     public void MainDriving(){
-        double LeftStickX;  //= gamepad1.left_stick_x * normalOrReversDrive;
-        double LeftStickY;  //= -gamepad1.left_stick_y * normalOrReversDrive;  // The joystick goes negative when pushed forwards, so negate it.
-        double RightStickX; //= gamepad1.right_stick_x * normalOrReversDrive;
-        double RightStickY; //= -gamepad1.right_stick_y * normalOrReversDrive;    // The joystick goes negative when pushed forwards, so negate it
+        double LeftStickX;
+        double LeftStickY;
+        double RightStickX;
+        double RightStickY;
         //Controllers drive sticks inputs
         if(normalOrReversDrive== -1) {
             RightStickX = gamepad1.left_stick_x * normalOrReversDrive;
@@ -123,6 +95,7 @@ public class ApolloTeleop extends RobotFunctions {
             RightStickX = gamepad1.right_stick_x * normalOrReversDrive;
             RightStickY = -gamepad1.right_stick_y * normalOrReversDrive;    // The joystick goes negative when pushed forwards, so negate it
         }
+
         /** Main Driving **/
         // Drive modes control. Game pad 1, sticks.
         if ((LeftStickX < -joyStickLimitPoints) && ((Math.abs(LeftStickY) > joyStickLimitPoints)) &&
@@ -188,10 +161,9 @@ public class ApolloTeleop extends RobotFunctions {
             robot.mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             // Left trigger pushed, close extrusions.
             robot.mineralSend.setPower(0.7);
-            //robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
         } else {
             robot.mineralSend.setPower(0);
-            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
+            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
     }
 
@@ -208,40 +180,21 @@ public class ApolloTeleop extends RobotFunctions {
     }
 
 
-    public void ExtrusionsControlWithoutEnoders(){
-        // Game Pad 1, triggers. Extrusions control.
-        if (gamepad1.right_trigger > 0.1 )
-        {   // Right trigger pushed, open extrusions.
-            robot.mineralSend.setPower(gamepad1.right_trigger);
-
-        } else if (gamepad1.left_trigger > 0.1)
-        {
-            // Left trigger pushed, close extrusions.
-            robot.mineralSend.setPower(-1);
-            //robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
-        } else {
-            robot.mineralSend.setPower(0);
-            robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
-        }
-    }
-
     public void pushExtrusionsControl(ElapsedTime runtime) {
 
         if(pushPower<1) {
             pushPower = (runtime.seconds()/2);
         }else{
             pushPower=1;
-            }
+        }
+
         if (!moveMineralsInUse){
             if (-gamepad2.right_stick_y < -0.2 && !buttonClicked) {
 
                 robot.push.setPower(-0.7);
-                //robot.push.setPower(gamepad2.right_stick_y* 0.6);
-                //robot.blockMineralServo.setPosition(robot.block);
+
             } else if (-gamepad2.right_stick_y > 0.2 ) {
                 runtime.reset();
-                //telemetry.addData("YARVOA","YARBOA2");
-                //telemetry.update();
                 buttonClicked = false;
                 robot.push.setPower(-gamepad2.right_stick_y);
             } else {
@@ -283,13 +236,10 @@ public class ApolloTeleop extends RobotFunctions {
                 RestartAllEncoders();
             }catch (InterruptedException e) { }
         }
-
     }
 
 
     public void LiftControl(){
-        //telemetry.addData("time",runtime.seconds());
-        //telemetry.update();
         // Mineral lift Control. Game pad 2, left stick.
         if (-gamepad2.left_stick_y < -0.4 ) {
             robot.lift.setPower(-gamepad2.left_stick_y );
@@ -329,7 +279,6 @@ public class ApolloTeleop extends RobotFunctions {
                 robot.climbMotor.setPower(0);
                 robot.climbMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             }
-
         }
     }
 
@@ -404,9 +353,7 @@ public class ApolloTeleop extends RobotFunctions {
 
 
 
-
-
-    /** --------------------------------------------------------------- **/
+    /** Threads **/
 
 
 
@@ -429,7 +376,7 @@ public class ApolloTeleop extends RobotFunctions {
                         if (gamepad2.y) {
                             climbMotorInUse=true;
                             robot.climbMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                            encoderClimb(1, robot.climbLanderPosition);
+                            encoderClimb(1, climbEncoderOpen);
                             climbMotorInUse=false;
                         }else{
                             Thread.sleep(threadSleepTimeMS);
@@ -499,10 +446,6 @@ public class ApolloTeleop extends RobotFunctions {
         }
     }
 
-    public void callThread(Thread timepush){
-        timepush.start();
-    }
-
 
     private class timepush extends Thread
     {
@@ -535,7 +478,6 @@ public class ApolloTeleop extends RobotFunctions {
         Orientation angles =robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return(AngleUnit.DEGREES.fromUnit(angles.angleUnit,angles.firstAngle));
     }
-
 
 }
 
