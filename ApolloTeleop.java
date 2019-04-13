@@ -199,6 +199,7 @@ public class ApolloTeleop extends RobotFunctions {
         // When the Extrusions are dow set their position.
         if((-180<robot.mineralSend.getCurrentPosition()) && (robot.mineralSend.getCurrentPosition()< 180)){
             robot.mineralBoxServo.setPosition(robot.mineralBoxServoOpen);
+        }
 
         // Get the button state.
         if(!robot.touchPusher.getState()){
