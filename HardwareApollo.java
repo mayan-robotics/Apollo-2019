@@ -56,25 +56,12 @@ public class HardwareApollo {
     static final double block = 0;
     static final double dontBlock = 0.2;
 
-    // Gold mineral X positions limits for camera.
-    static final int MineralMiddleLimitLeft = 650 ;
-    static final int MineralMiddleLimitRight = 600 ;
-
-    // Gold Mineral servo position to be open or closed.
-    static final double goldMineralServoCloseLeft = 0;
-    static final double goldMineralServoCloseRight = 1;
-
-    // climb open position.
-    static final int climbOpenPosition = 37220;
-    static final int climbLanderPosition = 25000;
-
-
 
     // mineral box positions.
     static final double mineralBoxServoOpen = 0.60 ; //A
     static final double mineralBoxServoClose = 0.2; //Y
 
-    static final String Version = "Final.1" ;
+    static final String Version = "Final.2" ;
 
     /* local OpMode members. */
     HardwareMap hwMap  =  null;

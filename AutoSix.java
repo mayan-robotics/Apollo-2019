@@ -15,6 +15,5 @@ public class AutoSix extends AutoMain {
         climbDown();
 
         endAuto();
-
     }
 }

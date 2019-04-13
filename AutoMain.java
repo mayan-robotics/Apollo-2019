@@ -507,8 +507,8 @@ public abstract class AutoMain extends RobotFunctions
             gyroTurn(TURN_SPEED, angelForGyro(-90 * turnToCrater));
             gyroDrive(DRIVE_SPEED, 180, angelForGyro(3 * turnToCrater));
             gyroTurn(TURN_SPEED, angelForGyro(-32 * turnToCrater));
-            encoderSideWaysDrive(DRIVE_SPEED,-95 * turnToCrater);
-            gyroDrive(DRIVE_SPEED, 75, angelForGyro(0));
+            encoderSideWaysDrive(DRIVE_SPEED,-94 * turnToCrater);
+            gyroDrive(DRIVE_SPEED, 80, angelForGyro(0));
 
             killThreads();
             grab();

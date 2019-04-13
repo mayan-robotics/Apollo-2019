@@ -404,18 +404,9 @@ public class ApolloTeleop extends RobotFunctions {
 
                     if (gamepad2.right_bumper) {
                         moveMineralsInUse = true;
-                        //mineralUp();
-                        //waitSeconds(5);
-                        PUSHSPEED=1;
+
                         timepush.start();
                         liftUntilStuck(-1);
-                        robot.blockMineralServo.setPosition(robot.dontBlock);   // Set Mode of servo to not block minerals.
-                        robot.mineralGrab.setPosition(FORWARD);
-                        waitSeconds(5);
-
-                        telemetry.addData("Finished1", "here");
-                        telemetry.update();
-                        moveMineralsInUse = false;
 
 
                     } else if(gamepad2.y) {
@@ -456,15 +447,7 @@ public class ApolloTeleop extends RobotFunctions {
         public void run()
         {
             try {
-
-                telemetry.addData("HEREEE","HEERE");
-                telemetry.update();
-                waitSeconds(0.2);
-                robot.push.setPower(PUSHSPEED);
-                //waitSeconds(0.5);
-                robot.mineralGrab.setPosition(FORWARD);
-                waitSeconds(1.5);
-
+                pushClose(0.6);
             }catch (InterruptedException e){
                 telemetry.addData("Interrupt",e);
                 telemetry.update();

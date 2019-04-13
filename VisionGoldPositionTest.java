@@ -107,10 +107,7 @@ public class VisionGoldPositionTest extends OpMode {
                     if (contoursGold.size() >= 1) {
                         if (Imgproc.boundingRect(contoursGold.get(0)) != null) {
                             Rect GoldBoundingRect = Imgproc.boundingRect(contoursGold.get(0));
-                            //int goldXPosition = GoldBoundingRect.x;
                             int goldYPosition = GoldBoundingRect.y;
-
-                            //telemetry.addData("Gold Position X", goldXPosition);
                             telemetry.addData("Gold Position Y", goldYPosition);
 
                             if (goldYPosition > 310) {
@@ -119,10 +116,7 @@ public class VisionGoldPositionTest extends OpMode {
                             } else if (goldYPosition < 310) {
                                 telemetry.addData("Gold Position", "Right");
                                 return GoldPosition.LEFT;
-                            } //else if (goldYPosition > 450 && goldYPosition < 650) {
-                              //  telemetry.addData("Gold Position", "Middle");
-                              //  return GoldPosition.MIDDLE;
-                            //}
+                            }
                         }
                     }
                 }
