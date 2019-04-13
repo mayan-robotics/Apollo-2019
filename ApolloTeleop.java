@@ -180,7 +180,7 @@ public class ApolloTeleop extends RobotFunctions {
         {   // Right trigger pushed, open extrusions.
             robot.mineralSend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             robot.mineralSend.setPower(-gamepad1.right_trigger);
-            if(robot.mineralSend.getCurrentPosition()<-450 && !gamepad1.y){
+            if(robot.mineralSend.getCurrentPosition()>-450 && !gamepad1.y){
                 robot.mineralBoxServo.setPosition(1);
             }
         } else if (gamepad1.left_trigger > 0.1)
@@ -194,7 +194,7 @@ public class ApolloTeleop extends RobotFunctions {
             robot.mineralSend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);        // Yotam helped
         }
     }
-    
+
     public void GeneralRobotActions(){
         // When the Extrusions are dow set their position.
         if((-180<robot.mineralSend.getCurrentPosition()) && (robot.mineralSend.getCurrentPosition()< 180)){
