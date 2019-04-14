@@ -191,12 +191,12 @@ public class ApolloTeleop extends RobotFunctions {
         if (!moveMineralsInUse){
             if (-gamepad2.right_stick_y < -0.2 && !buttonClicked) {
 
-                robot.push.setPower(-0.7);
+                robot.push.setPower(0.7);
 
             } else if (-gamepad2.right_stick_y > 0.2 ) {
                 runtime.reset();
                 buttonClicked = false;
-                robot.push.setPower(-gamepad2.right_stick_y);
+                robot.push.setPower(gamepad2.right_stick_y);
             } else {
                 runtime.reset();
                 if (!moveMineralsInUse) {
