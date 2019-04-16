@@ -16,10 +16,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class ApolloTeleop extends RobotFunctions {
 
-
     static double speedFactor = 1;  // Speed factor
     static double normalOrReversDrive = 1;  // Drive normal or revers
-
     static final double joyStickLimitPoints = 0.3;  // For better control
 
     volatile boolean climbMotorInUse = false;
@@ -30,7 +28,7 @@ public class ApolloTeleop extends RobotFunctions {
     volatile boolean threadOn = true;
 
     volatile boolean OutThread = true;
-    int PUSHSPEED = 1;
+    double PUSHSPEED = 1;
 
     boolean sevoblock;
     double pushPower;
@@ -181,7 +179,6 @@ public class ApolloTeleop extends RobotFunctions {
 
 
     public void pushExtrusionsControl(ElapsedTime runtime) {
-
         if(pushPower<1) {
             pushPower = (runtime.seconds()/2);
         }else{
@@ -306,7 +303,6 @@ public class ApolloTeleop extends RobotFunctions {
                 moveMinerals.interrupt();
             }
         }
-
     }
 
 
@@ -405,6 +401,7 @@ public class ApolloTeleop extends RobotFunctions {
                     if (gamepad2.right_bumper) {
                         moveMineralsInUse = true;
 
+                        PUSHSPEED = 0.6;
                         timepush.start();
                         liftUntilStuck(-1);
 
@@ -447,7 +444,7 @@ public class ApolloTeleop extends RobotFunctions {
         public void run()
         {
             try {
-                pushClose(0.6);
+                pushClose(PUSHSPEED);
             }catch (InterruptedException e){
                 telemetry.addData("Interrupt",e);
                 telemetry.update();
